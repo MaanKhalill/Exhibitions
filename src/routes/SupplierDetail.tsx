@@ -6,6 +6,7 @@ import { listParticipationsForSupplier } from '../api/participations'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { PRIORITY_LABELS, VISIT_STATUS_LABELS } from '../types'
 import { Page, Spinner } from '../components/ui'
+import { SupplierUpdateRequest } from '../components/SupplierUpdateRequest'
 
 function Row({ k, v, href }: { k: string; v: string; href?: string }) {
   if (!v) return null
@@ -64,6 +65,12 @@ export function SupplierDetail() {
           {site && <a className="btn" href={site} target="_blank" rel="noreferrer">🌐 Web</a>}
         </div>
       )}
+
+      <SupplierUpdateRequest
+        supplier={s}
+        contact={contacts[0] ?? null}
+        exhibitionId={parts[0]?.exhibition_id ?? null}
+      />
 
       {s.product_summary && (
         <div className="detail-section">

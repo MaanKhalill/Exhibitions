@@ -18,6 +18,7 @@ import {
 import { Field, Page, Spinner, ErrorNote } from '../components/ui'
 import { Stars } from '../components/Stars'
 import { CaptureSection } from '../components/CaptureSection'
+import { SupplierUpdateRequest } from '../components/SupplierUpdateRequest'
 
 function toLocalInput(iso: string | null): string {
   if (!iso) return ''
@@ -192,6 +193,8 @@ export function FairSupplierDetail() {
         participationId={existing?.id ?? null}
         exhibitionId={current.id}
       />
+
+      {supplier && <SupplierUpdateRequest supplier={supplier} exhibitionId={current.id} />}
 
       <ErrorNote error={save.error} />
       <div className="actions">

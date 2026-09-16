@@ -7,13 +7,12 @@ import {
   getInvitation,
   inviteUrl,
   listInvitationEvents,
-  patchInvitation,
   setInvitationStatus,
 } from '../api/invitations'
 import { getExhibition } from '../api/exhibitions'
 import { getProfile } from '../api/profile'
 import { sendInvitationEmail } from '../api/email'
-import { emailBody, emailSubject, invitationMessage, mailtoLink, whatsappLink, whatsappUpdateLink } from '../lib/messages'
+import { emailBody, emailSubject, invitationMessage, mailtoLink, whatsappLink } from '../lib/messages'
 import { INVITATION_STATUS_LABELS, type InvitationStatus } from '../types'
 import { Page, Spinner } from '../components/ui'
 
@@ -51,14 +50,6 @@ export function InvitationDetail() {
       if (inv) qc.invalidateQueries({ queryKey: ['invitations', inv.exhibition_id] })
       navigate('/invitations', { replace: true })
     },
-  })
-  const updateReq = useMutation({
-    mutationFn: async () => {
-      const expires = new Date(Date.now() + 24 * 3600 * 1000).toISOString()
-      await patchInvitation(id!, { expires_at: expires, ttl_hours: null, status: 'sent_whatsapp' })
-      await addInvitationEvent(id!, 'update_requested', 'Update request sent (link valid 24h)')
-    },
-    onSuccess: refresh,
   })
   const emailNow = useMutation({
     mutationFn: async () => {
@@ -113,12 +104,6 @@ export function InvitationDetail() {
     }
     mark.mutate({ event: 'message_copied' })
   }
-  const sendUpdate = () => {
-    // Open WhatsApp first (avoids popup blocking), then start the 24h window.
-    window.open(whatsappUpdateLink(inv, ex ?? null, profile), '_blank')
-    updateReq.mutate()
-  }
-
   const resp = inv.response as Record<string, unknown> | null
 
   return (
@@ -149,16 +134,16 @@ export function InvitationDetail() {
         <p className="hint">The email includes your trip details. Opens WhatsApp/email with an editable bilingual (EN + 中文) message — you stay in control of the final send.</p>
       </div>
 
-      <div className="detail-section">
-        <h3>Ask supplier to update their data</h3>
-        <p className="hint" style={{ marginTop: 0 }}>
-          Sends a WhatsApp asking them to review &amp; update all their details. The link becomes valid
-          for <b>24 hours</b> from now.
-        </p>
-        <button className="btn primary block" onClick={sendUpdate} disabled={updateReq.isPending}>
-          💬 Request update via WhatsApp (24h)
-        </button>
-      </div>
+      {inv.supplier_id && (
+        <div className="detail-section">
+          <h3>Need to refresh their data later?</h3>
+          <p className="hint" style={{ marginTop: 0 }}>
+            Ask an existing supplier to review &amp; update all their details from their own page —
+            WhatsApp/email use the number and address already on file.
+          </p>
+          <Link className="btn block" to={`/suppliers/${inv.supplier_id}`}>Open supplier page →</Link>
+        </div>
+      )}
 
       <div className="detail-section">
         <h3>Status</h3>

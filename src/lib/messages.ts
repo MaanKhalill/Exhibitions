@@ -127,3 +127,24 @@ export function mailtoLink(inv: Invitation, ex: Exhibition | null, profile?: Pro
   const to = encodeURIComponent(inv.email || '')
   return `mailto:${to}?subject=${subject}&body=${body}`
 }
+
+// ---------- "please update your data" variants (for an existing supplier) ----------
+
+export function updateEmailSubject(ex: Exhibition | null): string {
+  const exName = ex ? `${ex.name}${ex.edition ? ' ' + ex.edition : ''}` : 'our records'
+  return `Please update your details — ${exName} / 请更新贵司信息`
+}
+
+/** Update-request email body: the bilingual "update all your details" ask + trip details. */
+export function updateEmailBody(inv: Invitation, ex: Exhibition | null, profile?: Profile | null): string {
+  const trip = tripDetails(ex)
+  const base = updateRequestMessage(inv, ex, profile)
+  return trip ? `${base}\n\n———\n\n${trip}` : base
+}
+
+export function mailtoUpdateLink(inv: Invitation, ex: Exhibition | null, profile?: Profile | null): string {
+  const subject = encodeURIComponent(updateEmailSubject(ex))
+  const body = encodeURIComponent(updateEmailBody(inv, ex, profile))
+  const to = encodeURIComponent(inv.email || '')
+  return `mailto:${to}?subject=${subject}&body=${body}`
+}

@@ -35,6 +35,20 @@ export async function getInvitation(id: string): Promise<Invitation | null> {
   return (data as Invitation) ?? null
 }
 
+/** Most recent invitation already linked to a supplier (reused for update requests). */
+export async function findInvitationForSupplier(supplierId: string): Promise<Invitation | null> {
+  if (DEMO) return demo.findInvitationForSupplier(supplierId)
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('*')
+    .eq('supplier_id', supplierId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return (data as Invitation) ?? null
+}
+
 export async function saveInvitation(i: Invitation): Promise<Invitation> {
   if (DEMO) return demo.saveInvitation(i)
   const { data, error } = await supabase.from(TABLE).upsert(toRow(i)).select('*').single()

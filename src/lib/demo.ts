@@ -217,6 +217,12 @@ export const demo = {
   // invitations
   listInvitations: async (exId: string) => clone(invitations.filter((i) => i.exhibition_id === exId)),
   getInvitation: async (id: string) => clone(invitations.find((i) => i.id === id) ?? null),
+  findInvitationForSupplier: async (supplierId: string) => {
+    const list = invitations
+      .filter((i) => i.supplier_id === supplierId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+    return clone(list[0] ?? null)
+  },
   saveInvitation: async (inv: Invitation) => {
     const i = invitations.findIndex((x) => x.id === inv.id)
     if (i >= 0) invitations[i] = clone(inv)
