@@ -44,9 +44,9 @@ export function Auth() {
     <div className="app">
       <div className="center-screen">
         <div style={{ textAlign: 'center' }}>
-          <div className="logo-badge">🛍️</div>
-          <h1 style={{ margin: '4px 0 2px' }}>Canton Fair Companion</h1>
-          <p className="hint">Capture suppliers, booths and products — even offline.</p>
+          <div className="logo-badge">🌏</div>
+          <h1 style={{ margin: '4px 0 2px' }}>Exhibition Supplier Intelligence</h1>
+          <p className="hint">Plan exhibitions, capture suppliers, and keep every lead — even offline.</p>
         </div>
 
         <form onSubmit={submit}>

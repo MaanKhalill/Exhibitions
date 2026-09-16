@@ -1,59 +1,75 @@
-# 🛍️ Canton Fair Companion
+# 🌏 Exhibition Supplier Intelligence
 
-A phone-friendly, **offline-first** app for capturing everything you find at the
-Canton Fair (or any large trade show): suppliers, booth numbers, contacts,
-products, photos, prices and follow-up notes — all saved to **your own
-database** so nothing gets lost and you can pull it up later on any device.
+A permanent, **multi-exhibition** supplier-intelligence and trip-optimization
+platform. Exhibitions are temporary operating workspaces; **suppliers, contacts,
+factories, media and relationship history are permanent global entities**. The
+value grows with every exhibition you attend rather than ending when a trip is
+over.
 
-Built for real conditions on the ground in Guangzhou: the exhibition halls have
-patchy Wi-Fi and many foreign apps are blocked, so the app works fully **with no
-connection** and syncs automatically once you're back online.
+First workspace: **Canton Fair · Autumn 2026** (Guangzhou, 14–28 Oct 2026).
 
-## Features
+Built for real conditions on the ground: patchy hall Wi-Fi and blocked foreign
+apps, so capture is designed to be fast, one-handed and offline-tolerant.
 
-- **Capture suppliers fast** — company, hall + booth number, category, contact,
-  WeChat / phone / email / website, an interest rating and free notes.
-- **Log products** under each supplier, with a **photo** (camera), model/SKU,
-  MOQ, unit price and currency.
-- **Follow-up status** — New · Quote requested · Sample requested · Ordered ·
-  Not interested.
-- **Search & filter** by company, booth, notes or category.
-- **Works offline** — everything is written locally first and synced to your
-  Supabase database when a connection is available. A status bar always shows
-  whether your data is saved.
-- **Export to CSV/Excel** — one tap to hand off to your team after the fair
-  (UTF-8 with Chinese characters intact).
-- **Installable** — add it to your home screen and it runs like a native app.
-- **Private** — each account only sees its own data (enforced by row-level
-  security in the database).
+---
+
+## Status — Phase 1 (Foundation) ✅
+
+The platform is delivered in phases (see the roadmap below). **Phase 1 is
+built:**
+
+- **Multi-exhibition workspaces** — create, edit, and switch between exhibitions
+  from a persistent switcher; full workspace details (venue, fair/trip dates,
+  arrival/departure city, hotel, status).
+- **Canton Fair Autumn 2026 onboarding** — one tap to create the first workspace,
+  prefilled with the trip dates (stored as data, never hardcoded logic).
+- **Global supplier directory** — permanent supplier master records with
+  free-text products (no forced categories), searchable across all exhibitions.
+- **Global contacts** linked to suppliers.
+- **Participations** — a supplier's exhibition-specific data (hall, booth, parsed
+  booth string, priority, meeting, visit status, evaluation, rating, factory
+  candidate). **One supplier ↔ many exhibitions; history is never overwritten.**
+- **Fast add + duplicate detection** — “Possible existing supplier found” matches
+  by name, domain, phone and WeChat; you choose *Link* or *Create new* (never
+  auto-merged).
+- **Home dashboard** with live counts, and a full navigation surface (upcoming
+  phases are shown as *Soon*).
+- **Installable PWA** with offline app shell.
+
+Later phases (Invitations & public forms, live capture & scanning, booth route
+planner, factory map & route optimization, global search, calendar, follow-ups,
+analytics) are stubbed in the navigation and backed by the same data model.
+
+## Architecture
+
+- **Exhibition** = a temporary workspace (`ex_exhibitions`).
+- **Supplier** = a permanent global master record (`ex_suppliers`).
+- **Contact** = a permanent person linked to a supplier (`ex_contacts`).
+- **Participation** = one supplier at one exhibition (`ex_participations`,
+  unique per `exhibition × supplier`) holding all exhibition-specific data.
+
+Everything is scoped to the signed-in admin by Postgres **row-level security**.
 
 ## Tech stack
 
-- **React + TypeScript + Vite**
+- **React + TypeScript + Vite**, **React Router**, **TanStack Query**
 - **vite-plugin-pwa** (installable, offline app shell)
-- **Supabase** — Postgres database, Auth (email + password) and Storage (photos)
+- **Supabase** — Postgres, Auth (email + password), Storage (`ex-media`)
 
 ## Setup
 
-All database objects are prefixed `cf_` (tables, function, policies) and use a
-`cf-photos` storage bucket, so the app can live safely inside a shared Supabase
-project without colliding with anything else in it.
+All database objects are prefixed `ex_` (tables, function, policies) and use an
+`ex-media` bucket, so the platform can live safely inside a shared Supabase
+project without touching anything else in it.
 
-1. In the [Supabase dashboard](https://supabase.com/dashboard), pick a project
-   (a dedicated one, or an existing one you don't mind sharing).
-2. Open the **SQL Editor** and run the two migration files in order:
-   - [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) —
-     `cf_suppliers` + `cf_products` tables and row-level security.
+1. In the [Supabase dashboard](https://supabase.com/dashboard), pick a project.
+2. In the **SQL Editor**, run the migrations in order:
+   - [`supabase/migrations/0001_foundation.sql`](supabase/migrations/0001_foundation.sql)
    - [`supabase/migrations/0002_storage.sql`](supabase/migrations/0002_storage.sql)
-     — private `cf-photos` bucket + policies.
-3. (Optional) Under **Authentication → Providers → Email**, turn off "Confirm
-   email" if you want to sign in immediately without a confirmation step. This
-   is a project-wide setting, so only change it on a project you own.
+3. (Optional) **Authentication → Providers → Email**: turn off “Confirm email” to
+   sign in without a confirmation step (project-wide — only on a project you own).
 
-### 2. Configure the app
-
-Copy `.env.example` to `.env` and fill in your project's values (Supabase
-dashboard → **Project Settings → API**):
+Then configure the app (Supabase dashboard → **Project Settings → API**):
 
 ```bash
 cp .env.example .env
@@ -64,10 +80,7 @@ VITE_SUPABASE_URL=https://YOUR-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR-publishable-or-anon-key
 ```
 
-The publishable/anon key is safe to ship in a client app — row-level security is
-what actually protects your data.
-
-### 3. Run it
+Run it:
 
 ```bash
 npm install
@@ -79,31 +92,22 @@ npm run preview   # preview the production build
 Open the dev URL on your phone (same network) or deploy `dist/` to any static
 host, then **Add to Home Screen**.
 
-## How offline sync works
+## Roadmap
 
-- Reads always come from a local cache, so the app is instant and usable with no
-  signal.
-- Every change (add/edit supplier or product, photo, delete) is written to the
-  cache and queued in an **outbox**.
-- Whenever you're online and signed in, the outbox is flushed to Supabase in
-  order. New records get client-generated UUIDs, so an item created offline
-  keeps the same id once it syncs.
-- Photos captured offline are held (compressed) in the outbox and uploaded on
-  the next sync.
+| Phase | Scope | State |
+| ----- | ----- | ----- |
+| 1 | Multi-exhibition foundation, global suppliers/contacts/participations | ✅ Built |
+| 2 | Invitations & bilingual public supplier forms, WhatsApp/email, reminders | Planned |
+| 3 | Live capture & media: card/QR/barcode scan, photos, catalogues, offline queue | Planned |
+| 4 | Booth route planner: proximity routing, fixed/flexible meetings, Today view | Planned |
+| 5–6 | Factory map, city clustering, intercity transport optimization, departure safety | Planned |
+| 7–8 | Global search & timeline, Google Calendar, follow-ups, analytics | Planned |
 
-## Data model
+## Design principles (from the brief)
 
-| Table          | Purpose                                              |
-| -------------- | ---------------------------------------------------- |
-| `cf_suppliers` | One row per booth/company you visit.                 |
-| `cf_products`  | Products under a supplier (with a photo in Storage). |
-
-Both are scoped to the signed-in user via row-level security.
-
-## Roadmap ideas
-
-- Currency converter (USD ⇄ CNY) and a running budget.
-- Business-card photo → auto-fill contact fields.
-- Map / hall notes and a visit plan.
-- Team sharing (multiple people capturing into one workspace).
-- Voice notes at the booth.
+- One supplier = one permanent global identity, even across many exhibitions.
+- Historical exhibition data is never overwritten.
+- Products are free text — no predefined category taxonomy.
+- Nothing hardcoded: suppliers, products, cities and future exhibitions are all
+  created from the UI.
+- Capture favours speed and one-handed use; planning stays manually editable.

@@ -1,106 +1,164 @@
-export type SupplierStatus =
-  | 'new'
-  | 'quote'
-  | 'sample'
-  | 'ordered'
-  | 'skip'
+// ---------- Exhibitions (workspaces) ----------
+export type ExhibitionStatus =
+  | 'planning'
+  | 'upcoming'
+  | 'active'
+  | 'factory_visit'
+  | 'completed'
+  | 'archived'
 
-export const STATUS_LABELS: Record<SupplierStatus, string> = {
-  new: 'New',
-  quote: 'Quote requested',
-  sample: 'Sample requested',
-  ordered: 'Ordered',
-  skip: 'Not interested',
+export const EXHIBITION_STATUS_LABELS: Record<ExhibitionStatus, string> = {
+  planning: 'Planning',
+  upcoming: 'Upcoming',
+  active: 'Active',
+  factory_visit: 'Factory Visit Phase',
+  completed: 'Completed',
+  archived: 'Archived',
 }
 
-export const CATEGORIES = [
-  'Electronics & Appliances',
-  'Lighting',
-  'Machinery',
-  'Building Materials',
-  'Home & Kitchen',
-  'Furniture',
-  'Textiles & Garments',
-  'Bags & Shoes',
-  'Toys & Gifts',
-  'Beauty & Health',
-  'Auto & Motorcycle',
-  'Packaging',
-  'Office & Stationery',
-  'Other',
-] as const
+export interface Exhibition {
+  id: string
+  user_id?: string
+  name: string
+  edition: string
+  year: number | null
+  country: string
+  city: string
+  venue: string
+  website: string
+  opening_hours: string
+  start_date: string | null
+  end_date: string | null
+  trip_start: string | null
+  trip_end: string | null
+  arrival_city: string
+  departure_city: string
+  hotel: string
+  notes: string
+  status: ExhibitionStatus
+  created_at: string
+  updated_at: string
+}
 
+// ---------- Suppliers (global) ----------
 export interface Supplier {
   id: string
   user_id?: string
   company_name: string
-  hall: string
-  booth: string
-  category: string
-  contact_name: string
+  aliases: string
+  website: string
+  domain: string
+  country: string
+  city: string
+  address: string
   phone: string
   wechat: string
   email: string
-  website: string
-  rating: number
-  status: SupplierStatus
+  product_summary: string
   notes: string
+  first_met_exhibition_id: string | null
   created_at: string
   updated_at: string
 }
 
-export interface Product {
+// ---------- Contacts ----------
+export interface Contact {
   id: string
-  supplier_id: string
   user_id?: string
+  supplier_id: string
   name: string
-  model: string
-  moq: string
-  unit_price: string
-  currency: string
+  position: string
+  phone: string
+  wechat: string
+  email: string
+  business_card_path: string | null
   notes: string
-  photo_path: string | null
-  /** Client-only: a data URL captured offline, not yet uploaded to storage. */
-  pending_photo?: string | null
+  first_met_exhibition_id: string | null
   created_at: string
   updated_at: string
 }
 
-export function newSupplier(): Supplier {
-  const now = new Date().toISOString()
-  return {
-    id: crypto.randomUUID(),
-    company_name: '',
-    hall: '',
-    booth: '',
-    category: '',
-    contact_name: '',
-    phone: '',
-    wechat: '',
-    email: '',
-    website: '',
-    rating: 0,
-    status: 'new',
-    notes: '',
-    created_at: now,
-    updated_at: now,
-  }
+// ---------- Participations (supplier × exhibition) ----------
+export type Priority = 'must' | 'worth' | 'optional' | 'tbd'
+export const PRIORITY_LABELS: Record<Priority, string> = {
+  must: 'Must Visit',
+  worth: 'Worth Visiting',
+  optional: 'Optional',
+  tbd: 'To Be Decided',
 }
 
-export function newProduct(supplierId: string): Product {
-  const now = new Date().toISOString()
-  return {
-    id: crypto.randomUUID(),
-    supplier_id: supplierId,
-    name: '',
-    model: '',
-    moq: '',
-    unit_price: '',
-    currency: 'USD',
-    notes: '',
-    photo_path: null,
-    pending_photo: null,
-    created_at: now,
-    updated_at: now,
-  }
+export type VisitStatus =
+  | 'planned'
+  | 'confirmed'
+  | 'on_the_way'
+  | 'arrived'
+  | 'in_progress'
+  | 'completed'
+  | 'skipped'
+  | 'rescheduled'
+  | 'cancelled'
+export const VISIT_STATUS_LABELS: Record<VisitStatus, string> = {
+  planned: 'Planned',
+  confirmed: 'Confirmed',
+  on_the_way: 'On the Way',
+  arrived: 'Arrived',
+  in_progress: 'Meeting in Progress',
+  completed: 'Completed',
+  skipped: 'Skipped',
+  rescheduled: 'Rescheduled',
+  cancelled: 'Cancelled',
+}
+
+export type InterestLevel = 'high' | 'medium' | 'low' | 'review'
+export const INTEREST_LABELS: Record<InterestLevel, string> = {
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+  review: 'Review Later',
+}
+
+export const FOLLOW_UP_OPTIONS = [
+  'Immediate',
+  'After Fair',
+  'Request Quotation',
+  'Request Samples',
+  'Factory Visit',
+  'Technical Review',
+  'No Further Action',
+] as const
+
+export interface Participation {
+  id: string
+  user_id?: string
+  exhibition_id: string
+  supplier_id: string
+  hall: string
+  floor: string
+  area: string
+  booth: string
+  booth_raw: string
+  booth_section: string
+  booth_number: string
+  booth_contact_name: string
+  booth_contact_phone: string
+  products_shown: string
+  priority: Priority
+  preferred_meeting: string | null
+  confirmed_meeting: string | null
+  meeting_fixed: boolean
+  expected_duration_min: number
+  visit_status: VisitStatus
+  interest_level: InterestLevel | null
+  follow_up: string
+  rating: number
+  factory_candidate: boolean
+  notes: string
+  discovered_onsite: boolean
+  created_at: string
+  updated_at: string
+}
+
+/** A participation joined with its global supplier (for planner/list views). */
+export interface ParticipationWithSupplier extends Participation {
+  supplier: Supplier
 }

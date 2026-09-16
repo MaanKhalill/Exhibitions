@@ -10,10 +10,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Canton Fair Companion',
-        short_name: 'Canton Fair',
+        name: 'Exhibition Supplier Intelligence',
+        short_name: 'Exhibitions',
         description:
-          'Capture suppliers, booths and products at the Canton Fair — works offline.',
+          'Permanent multi-exhibition supplier intelligence, live fair capture and trip planning — works offline.',
         theme_color: '#b8272c',
         background_color: '#ffffff',
         display: 'standalone',

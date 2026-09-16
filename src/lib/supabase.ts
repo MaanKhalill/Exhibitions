@@ -9,7 +9,7 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
  */
 export const isConfigured = Boolean(url && anonKey)
 
-export const PHOTO_BUCKET = 'cf-photos'
+export const MEDIA_BUCKET = 'ex-media'
 
 // A harmless placeholder keeps createClient from throwing before setup.
 export const supabase = createClient(
