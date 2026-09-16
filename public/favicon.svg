@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#b8272c"/>
+  <!-- awning -->
+  <path d="M96 176 L416 176 L392 248 L120 248 Z" fill="#ffffff"/>
+  <path d="M120 176 L152 176 L140 248 L120 248 Z" fill="#f2b8ba"/>
+  <path d="M200 176 L232 176 L228 248 L204 248 Z" fill="#f2b8ba"/>
+  <path d="M280 176 L312 176 L316 248 L292 248 Z" fill="#f2b8ba"/>
+  <path d="M360 176 L392 176 L392 248 L372 248 Z" fill="#f2b8ba"/>
+  <!-- stall body -->
+  <rect x="128" y="248" width="256" height="168" rx="12" fill="#ffffff"/>
+  <rect x="164" y="292" width="184" height="16" rx="8" fill="#b8272c"/>
+  <rect x="164" y="332" width="184" height="16" rx="8" fill="#e08a8c"/>
+  <rect x="164" y="372" width="120" height="16" rx="8" fill="#e08a8c"/>
+</svg>
