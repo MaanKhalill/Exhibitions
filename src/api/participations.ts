@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { DEMO, demo } from '../lib/demo'
 import { parseBooth } from '../lib/booth'
 import type { Participation, ParticipationWithSupplier } from '../types'
 
@@ -19,6 +20,7 @@ function toRow(p: Participation) {
 export async function listParticipations(
   exhibitionId: string,
 ): Promise<ParticipationWithSupplier[]> {
+  if (DEMO) return demo.listParticipations(exhibitionId)
   const { data, error } = await supabase
     .from(TABLE)
     .select('*, supplier:ex_suppliers(*)')
@@ -30,6 +32,7 @@ export async function listParticipations(
 export async function listParticipationsForSupplier(
   supplierId: string,
 ): Promise<Participation[]> {
+  if (DEMO) return demo.listParticipationsForSupplier(supplierId)
   const { data, error } = await supabase
     .from(TABLE)
     .select('*')
@@ -43,6 +46,7 @@ export async function getParticipation(
   exhibitionId: string,
   supplierId: string,
 ): Promise<Participation | null> {
+  if (DEMO) return demo.getParticipation(exhibitionId, supplierId)
   const { data, error } = await supabase
     .from(TABLE)
     .select('*')
@@ -54,6 +58,7 @@ export async function getParticipation(
 }
 
 export async function saveParticipation(p: Participation): Promise<Participation> {
+  if (DEMO) return demo.saveParticipation(p)
   const { data, error } = await supabase
     .from(TABLE)
     .upsert(toRow(p), { onConflict: 'exhibition_id,supplier_id' })
@@ -64,6 +69,7 @@ export async function saveParticipation(p: Participation): Promise<Participation
 }
 
 export async function deleteParticipation(id: string): Promise<void> {
+  if (DEMO) return demo.deleteParticipation(id)
   const { error } = await supabase.from(TABLE).delete().eq('id', id)
   if (error) throw error
 }

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { DEMO, demo } from '../lib/demo'
 import { extractDomain, normalizePhone } from '../lib/defaults'
 import type { Supplier } from '../types'
 
@@ -12,6 +13,7 @@ function toRow(s: Supplier) {
 }
 
 export async function listSuppliers(search = ''): Promise<Supplier[]> {
+  if (DEMO) return demo.listSuppliers(search)
   let q = supabase.from(TABLE).select('*').order('company_name', { ascending: true })
   const term = search.trim()
   if (term) {
@@ -34,18 +36,21 @@ export async function listSuppliers(search = ''): Promise<Supplier[]> {
 }
 
 export async function getSupplier(id: string): Promise<Supplier | null> {
+  if (DEMO) return demo.getSupplier(id)
   const { data, error } = await supabase.from(TABLE).select('*').eq('id', id).maybeSingle()
   if (error) throw error
   return (data as Supplier) ?? null
 }
 
 export async function saveSupplier(s: Supplier): Promise<Supplier> {
+  if (DEMO) return demo.saveSupplier(s)
   const { data, error } = await supabase.from(TABLE).upsert(toRow(s)).select('*').single()
   if (error) throw error
   return data as Supplier
 }
 
 export async function deleteSupplier(id: string): Promise<void> {
+  if (DEMO) return demo.deleteSupplier(id)
   const { error } = await supabase.from(TABLE).delete().eq('id', id)
   if (error) throw error
 }
@@ -68,6 +73,7 @@ export async function findDuplicates(candidate: {
   phone?: string
   wechat?: string
 }): Promise<DuplicateMatch[]> {
+  if (DEMO) return demo.findDuplicates(candidate)
   const all = await listSuppliers()
   const name = (candidate.company_name || '').trim().toLowerCase()
   const domain = extractDomain(candidate.website || '') || extractDomain(candidate.email || '')

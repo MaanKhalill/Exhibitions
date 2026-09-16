@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { isConfigured, supabase } from './lib/supabase'
+import { DEMO } from './lib/demo'
 import { ExhibitionProvider } from './lib/ExhibitionContext'
 import { Layout } from './components/Layout'
 import { Auth } from './components/Auth'
@@ -53,10 +54,17 @@ export default function App() {
     )
   }
 
+  // Preview / demo build: no login, seeded in-memory data.
+  if (DEMO) return <AdminApp />
+
   if (!isConfigured) return <SetupNeeded />
   if (!ready) return <div className="app"><div className="content"><Spinner /></div></div>
   if (!session) return <Auth />
 
+  return <AdminApp />
+}
+
+function AdminApp() {
   return (
     <ExhibitionProvider>
       <Routes>

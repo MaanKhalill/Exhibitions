@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { DEMO, demo } from '../lib/demo'
 import type { Invitation, InvitationEvent, InvitationStatus } from '../types'
 
 const TABLE = 'ex_invitations'
@@ -17,6 +18,7 @@ export function inviteUrl(token: string): string {
 }
 
 export async function listInvitations(exhibitionId: string): Promise<Invitation[]> {
+  if (DEMO) return demo.listInvitations(exhibitionId)
   const { data, error } = await supabase
     .from(TABLE)
     .select('*')
@@ -27,18 +29,21 @@ export async function listInvitations(exhibitionId: string): Promise<Invitation[
 }
 
 export async function getInvitation(id: string): Promise<Invitation | null> {
+  if (DEMO) return demo.getInvitation(id)
   const { data, error } = await supabase.from(TABLE).select('*').eq('id', id).maybeSingle()
   if (error) throw error
   return (data as Invitation) ?? null
 }
 
 export async function saveInvitation(i: Invitation): Promise<Invitation> {
+  if (DEMO) return demo.saveInvitation(i)
   const { data, error } = await supabase.from(TABLE).upsert(toRow(i)).select('*').single()
   if (error) throw error
   return data as Invitation
 }
 
 export async function setInvitationStatus(id: string, status: InvitationStatus): Promise<void> {
+  if (DEMO) return demo.setInvitationStatus(id, status)
   const patch: Record<string, unknown> = { status }
   if (status === 'sent_whatsapp' || status === 'sent_email' || status === 'link_shared') {
     patch.last_sent_at = new Date().toISOString()
@@ -48,6 +53,7 @@ export async function setInvitationStatus(id: string, status: InvitationStatus):
 }
 
 export async function deleteInvitation(id: string): Promise<void> {
+  if (DEMO) return demo.deleteInvitation(id)
   const { error } = await supabase.from(TABLE).delete().eq('id', id)
   if (error) throw error
 }
@@ -57,6 +63,7 @@ export async function addInvitationEvent(
   type: string,
   detail: string,
 ): Promise<void> {
+  if (DEMO) return demo.addInvitationEvent(invitationId, type, detail)
   const { error } = await supabase.from('ex_invitation_events').insert({
     invitation_id: invitationId,
     type,
@@ -66,6 +73,7 @@ export async function addInvitationEvent(
 }
 
 export async function listInvitationEvents(invitationId: string): Promise<InvitationEvent[]> {
+  if (DEMO) return demo.listInvitationEvents(invitationId)
   const { data, error } = await supabase
     .from('ex_invitation_events')
     .select('*')
@@ -100,6 +108,7 @@ export interface PublicInvitationInfo {
 }
 
 export async function fetchPublicInvitation(token: string): Promise<PublicInvitationInfo> {
+  if (DEMO) return demo.fetchPublicInvitation(token) as Promise<PublicInvitationInfo>
   const { data, error } = await supabase.functions.invoke('invitation-get', { body: { token } })
   if (error) throw error
   if (data?.error) throw new Error(data.error)
@@ -110,6 +119,7 @@ export async function submitPublicInvitation(
   token: string,
   payload: Record<string, unknown>,
 ): Promise<void> {
+  if (DEMO) return demo.submitPublicInvitation()
   const { data, error } = await supabase.functions.invoke('invitation-submit', {
     body: { token, payload },
   })

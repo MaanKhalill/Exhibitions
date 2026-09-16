@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { useCaptureQueue } from '../lib/useCaptureQueue'
 import { flushCaptures } from '../lib/captureQueue'
+import { DEMO } from '../lib/demo'
 import { EXHIBITION_STATUS_LABELS } from '../types'
 
 function CaptureStatus() {
@@ -88,6 +89,12 @@ export function Layout() {
           </div>
         </div>
       </header>
+
+      {DEMO && (
+        <div className="demo-ribbon">
+          👀 Preview — sample data, no sign-in. Your real data-saving app is the hosted version.
+        </div>
+      )}
 
       <CaptureStatus />
 

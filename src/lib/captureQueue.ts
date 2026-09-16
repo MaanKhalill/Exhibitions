@@ -1,5 +1,6 @@
 import { insertMediaRow, uploadMedia, type MediaMeta } from '../api/media'
 import { supabase } from './supabase'
+import { DEMO } from './demo'
 
 /**
  * Offline-tolerant capture queue (brief §11). Every photo/scan/note is written
@@ -77,6 +78,7 @@ export function pendingForSupplier(supplierId: string): PendingCapture[] {
 }
 
 async function authed(): Promise<boolean> {
+  if (DEMO) return true
   const { data } = await supabase.auth.getSession()
   return Boolean(data.session)
 }

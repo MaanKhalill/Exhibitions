@@ -1,4 +1,5 @@
 import { MEDIA_BUCKET, supabase } from '../lib/supabase'
+import { DEMO, demo } from '../lib/demo'
 import { dataUrlToBlob } from '../lib/image'
 import type { MediaItem, MediaKind } from '../types'
 
@@ -11,6 +12,7 @@ async function currentUserId(): Promise<string> {
 
 /** Upload a compressed data URL to the private media bucket, returning its path. */
 export async function uploadMedia(dataUrl: string, folder: string): Promise<string> {
+  if (DEMO) return demo.uploadMedia(dataUrl, folder)
   const userId = await currentUserId()
   const path = `${userId}/${folder}/${crypto.randomUUID()}.jpg`
   const blob = dataUrlToBlob(dataUrl)
@@ -23,6 +25,7 @@ export async function uploadMedia(dataUrl: string, folder: string): Promise<stri
 
 /** Short-lived signed URL for displaying a private media object. */
 export async function mediaUrl(path: string): Promise<string | null> {
+  if (DEMO) return demo.mediaUrl(path)
   const { data, error } = await supabase.storage
     .from(MEDIA_BUCKET)
     .createSignedUrl(path, 60 * 60)
@@ -43,6 +46,7 @@ export interface MediaMeta {
 }
 
 export async function insertMediaRow(meta: MediaMeta): Promise<MediaItem> {
+  if (DEMO) return demo.insertMediaRow(meta)
   const row = {
     id: meta.id ?? crypto.randomUUID(),
     kind: meta.kind,
@@ -60,6 +64,7 @@ export async function insertMediaRow(meta: MediaMeta): Promise<MediaItem> {
 }
 
 export async function listMediaForSupplier(supplierId: string): Promise<MediaItem[]> {
+  if (DEMO) return demo.listMediaForSupplier(supplierId)
   const { data, error } = await supabase
     .from('ex_media')
     .select('*')
@@ -73,11 +78,13 @@ export async function updateMediaRow(
   id: string,
   patch: { caption?: string; flags?: string; decoded_content?: string },
 ): Promise<void> {
+  if (DEMO) return demo.updateMediaRow(id, patch)
   const { error } = await supabase.from('ex_media').update(patch).eq('id', id)
   if (error) throw error
 }
 
 export async function deleteMedia(item: MediaItem): Promise<void> {
+  if (DEMO) return demo.deleteMedia(item)
   const { error } = await supabase.from('ex_media').delete().eq('id', item.id)
   if (error) throw error
   if (item.path) {
