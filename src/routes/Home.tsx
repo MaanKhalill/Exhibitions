@@ -7,6 +7,7 @@ import { listFactories } from '../api/factories'
 import { cantonFairAutumn2026 } from '../lib/defaults'
 import { EXHIBITION_STATUS_LABELS } from '../types'
 import { Page, Spinner } from '../components/ui'
+import { QuickWhatsAppInvite } from '../components/QuickWhatsAppInvite'
 import { formatDateRange, daysUntil } from '../lib/format'
 import { buildIcs, calendarEvents, downloadIcs } from '../lib/ics'
 
@@ -153,6 +154,10 @@ function Dashboard({ exhibitionId }: { exhibitionId: string }) {
       <div className="toolbar">
         <button className="btn" onClick={() => navigate('/factory-plan')}>🏭 Factories</button>
         <button className="btn" onClick={exportCalendar}>📅 Calendar</button>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <QuickWhatsAppInvite />
       </div>
 
       <button className="btn ghost block" onClick={() => navigate(`/exhibitions/${current.id}/edit`)}>
