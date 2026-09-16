@@ -11,7 +11,8 @@ import {
   setInvitationStatus,
 } from '../api/invitations'
 import { getExhibition } from '../api/exhibitions'
-import { invitationMessage, mailtoLink, whatsappLink, whatsappUpdateLink } from '../lib/messages'
+import { sendInvitationEmail } from '../api/email'
+import { emailBody, emailSubject, invitationMessage, mailtoLink, whatsappLink, whatsappUpdateLink } from '../lib/messages'
 import { INVITATION_STATUS_LABELS, type InvitationStatus } from '../types'
 import { Page, Spinner } from '../components/ui'
 
@@ -54,6 +55,15 @@ export function InvitationDetail() {
       const expires = new Date(Date.now() + 24 * 3600 * 1000).toISOString()
       await patchInvitation(id!, { expires_at: expires, ttl_hours: null, status: 'sent_whatsapp' })
       await addInvitationEvent(id!, 'update_requested', 'Update request sent (link valid 24h)')
+    },
+    onSuccess: refresh,
+  })
+  const emailNow = useMutation({
+    mutationFn: async () => {
+      if (!inv) return
+      const r = await sendInvitationEmail(inv.id, emailSubject(ex ?? null), emailBody(inv, ex ?? null))
+      await setInvitationStatus(inv.id, 'sent_email')
+      await addInvitationEvent(inv.id, 'email_sent', `Email sent to ${r.to}`)
     },
     onSuccess: refresh,
   })
@@ -126,9 +136,13 @@ export function InvitationDetail() {
           <button className="btn" onClick={copyMessage}>📋 Copy message</button>
         </div>
         <div className="actions" style={{ marginTop: 10 }}>
-          <button className="btn primary" onClick={sendWhatsApp}>WhatsApp</button>
-          <button className="btn" onClick={sendEmail}>Email</button>
+          <button className="btn primary" onClick={sendWhatsApp}>💬 WhatsApp</button>
+          <button className="btn" onClick={sendEmail}>✉️ Mail app</button>
         </div>
+        <button className="btn block" style={{ marginTop: 8 }} onClick={() => emailNow.mutate()} disabled={emailNow.isPending}>
+          {emailNow.isPending ? 'Sending…' : emailNow.isSuccess ? 'Email sent ✓' : '📤 Send email now (from your mailbox)'}
+        </button>
+        {emailNow.isError && <p className="error">{(emailNow.error as Error).message}</p>}
         <p className={`hint ${isExpired ? 'error' : ''}`}>{isExpired ? '⛔' : '⏳'} {validity}</p>
         <p className="hint">The email includes your trip details. Opens WhatsApp/email with an editable bilingual (EN + 中文) message — you stay in control of the final send.</p>
       </div>

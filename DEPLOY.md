@@ -31,6 +31,38 @@ data.)
 4. Site settings → Environment variables → add the two variables above.
 5. Deploy → you get a `https://xxx.netlify.app` link.
 
+## Real email sending (your own SMTP mailbox)
+
+The **"Send email now"** button on an invitation sends from your own mailbox via
+the `send-email` Edge Function. Add these as **Edge Function secrets** in Supabase
+(Dashboard → Project → **Edge Functions → Manage secrets**, or
+`supabase secrets set KEY=value`):
+
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USERNAME=you@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM=you@gmail.com
+```
+
+- **Gmail/Google Workspace:** turn on 2‑Step Verification, then create an
+  **App Password** (Google Account → Security → App passwords) and use that as
+  `SMTP_PASSWORD` — your normal password will not work. Host `smtp.gmail.com`,
+  port `465`.
+- **Outlook/Office365:** `smtp.office365.com`, port `587`.
+- Other hosts: use their SMTP host/port (port `465` = implicit TLS).
+
+The function only ever sends to the email stored on an invitation you own, so it
+can't be used to send to arbitrary addresses.
+
+## WhatsApp
+
+The WhatsApp buttons open WhatsApp on your phone with the full bilingual message
+pre‑filled — you tap send, so it goes from your own number. (Fully automated
+WhatsApp sending is only possible via the paid WhatsApp Business API, not a
+personal number.)
+
 ## First sign-in
 
 The app uses email + password. On first run, tap **Create an account**, then sign
