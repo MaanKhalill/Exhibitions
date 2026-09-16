@@ -53,6 +53,17 @@ export function PublicInvite() {
   if (!info) {
     return <Shell><div className="empty"><div className="spinner" /><p className="hint">Loading… / 加载中…</p></div></Shell>
   }
+  if (info.expired) {
+    return (
+      <Shell>
+        <div className="empty">
+          <div className="big">⏳</div>
+          <p style={{ fontWeight: 600 }}>This link has expired.</p>
+          <p className="hint">Please ask your contact for a new link. / 链接已过期，请向您的联系人索取新链接。</p>
+        </div>
+      </Shell>
+    )
+  }
   if (done || info.invitation.already_responded) {
     return (
       <Shell>

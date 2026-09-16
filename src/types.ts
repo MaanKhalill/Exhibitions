@@ -214,6 +214,9 @@ export interface Invitation {
   response: Record<string, unknown> | null
   last_sent_at: string | null
   responded_at: string | null
+  opened_at: string | null
+  expires_at: string | null
+  ttl_hours: number | null
   created_at: string
   updated_at: string
 }

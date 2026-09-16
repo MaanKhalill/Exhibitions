@@ -58,6 +58,14 @@ export async function deleteInvitation(id: string): Promise<void> {
   if (error) throw error
 }
 
+/** Partial update (e.g. set expires_at when sending a 24h update request). */
+export async function patchInvitation(id: string, patch: Partial<Invitation>): Promise<void> {
+  if (DEMO) return
+  const { user_id: _o, ...rest } = patch
+  const { error } = await supabase.from(TABLE).update(rest).eq('id', id)
+  if (error) throw error
+}
+
 export async function addInvitationEvent(
   invitationId: string,
   type: string,
@@ -105,6 +113,8 @@ export interface PublicInvitationInfo {
     trip_start: string | null
     trip_end: string | null
   } | null
+  expired?: boolean
+  expires_at?: string | null
 }
 
 export async function fetchPublicInvitation(token: string): Promise<PublicInvitationInfo> {

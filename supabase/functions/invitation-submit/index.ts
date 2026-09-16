@@ -48,6 +48,14 @@ Deno.serve(async (req) => {
     if (invErr) return json({ error: invErr.message }, 500)
     if (!inv) return json({ error: 'Invitation not found' }, 404)
 
+    // Enforce link expiry (absolute expires_at, or ttl_hours from first open).
+    let effExpiry: number | null = null
+    if (inv.expires_at) effExpiry = Date.parse(inv.expires_at as string)
+    else if (inv.ttl_hours && inv.opened_at) effExpiry = Date.parse(inv.opened_at as string) + Number(inv.ttl_hours) * 3600000
+    if (effExpiry != null && Date.now() > effExpiry) {
+      return json({ error: 'This link has expired. Please ask your contact for a new one.', expired: true })
+    }
+
     const owner = inv.user_id
     const companyName = nz(p.company_name, inv.company_name)
     const website = p.website || ''

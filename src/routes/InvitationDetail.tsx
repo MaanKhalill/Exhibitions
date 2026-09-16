@@ -7,10 +7,11 @@ import {
   getInvitation,
   inviteUrl,
   listInvitationEvents,
+  patchInvitation,
   setInvitationStatus,
 } from '../api/invitations'
 import { getExhibition } from '../api/exhibitions'
-import { invitationMessage, mailtoLink, whatsappLink } from '../lib/messages'
+import { invitationMessage, mailtoLink, whatsappLink, whatsappUpdateLink } from '../lib/messages'
 import { INVITATION_STATUS_LABELS, type InvitationStatus } from '../types'
 import { Page, Spinner } from '../components/ui'
 
@@ -48,9 +49,31 @@ export function InvitationDetail() {
       navigate('/invitations', { replace: true })
     },
   })
+  const updateReq = useMutation({
+    mutationFn: async () => {
+      const expires = new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+      await patchInvitation(id!, { expires_at: expires, ttl_hours: null, status: 'sent_whatsapp' })
+      await addInvitationEvent(id!, 'update_requested', 'Update request sent (link valid 24h)')
+    },
+    onSuccess: refresh,
+  })
 
   if (isLoading || !inv) return <Spinner />
   const url = inviteUrl(inv.token)
+
+  const fmt = (iso: string) => new Date(iso).toLocaleString()
+  let validity = `Valid for ${inv.ttl_hours ?? 48}h after the supplier first opens it`
+  let isExpired = false
+  if (inv.expires_at) {
+    isExpired = Date.now() > Date.parse(inv.expires_at)
+    validity = isExpired ? `Expired ${fmt(inv.expires_at)}` : `Valid until ${fmt(inv.expires_at)} (24h update window)`
+  } else if (inv.opened_at && inv.ttl_hours) {
+    const exp = Date.parse(inv.opened_at) + inv.ttl_hours * 3600000
+    isExpired = Date.now() > exp
+    validity = isExpired
+      ? `Expired ${fmt(new Date(exp).toISOString())}`
+      : `Opened ${fmt(inv.opened_at)} · valid until ${fmt(new Date(exp).toISOString())}`
+  }
 
   const copyLink = async () => {
     try {
@@ -78,6 +101,11 @@ export function InvitationDetail() {
     }
     mark.mutate({ event: 'message_copied' })
   }
+  const sendUpdate = () => {
+    // Open WhatsApp first (avoids popup blocking), then start the 24h window.
+    window.open(whatsappUpdateLink(inv, ex ?? null), '_blank')
+    updateReq.mutate()
+  }
 
   const resp = inv.response as Record<string, unknown> | null
 
@@ -101,7 +129,19 @@ export function InvitationDetail() {
           <button className="btn primary" onClick={sendWhatsApp}>WhatsApp</button>
           <button className="btn" onClick={sendEmail}>Email</button>
         </div>
-        <p className="hint">Opens WhatsApp/email with an editable bilingual (EN + 中文) message — you stay in control of the final send.</p>
+        <p className={`hint ${isExpired ? 'error' : ''}`}>{isExpired ? '⛔' : '⏳'} {validity}</p>
+        <p className="hint">The email includes your trip details. Opens WhatsApp/email with an editable bilingual (EN + 中文) message — you stay in control of the final send.</p>
+      </div>
+
+      <div className="detail-section">
+        <h3>Ask supplier to update their data</h3>
+        <p className="hint" style={{ marginTop: 0 }}>
+          Sends a WhatsApp asking them to review &amp; update all their details. The link becomes valid
+          for <b>24 hours</b> from now.
+        </p>
+        <button className="btn primary block" onClick={sendUpdate} disabled={updateReq.isPending}>
+          💬 Request update via WhatsApp (24h)
+        </button>
       </div>
 
       <div className="detail-section">

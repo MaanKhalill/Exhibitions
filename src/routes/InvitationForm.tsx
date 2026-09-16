@@ -23,6 +23,9 @@ function draftInvitation(exhibitionId: string): Invitation {
     response: null,
     last_sent_at: null,
     responded_at: null,
+    opened_at: null,
+    expires_at: null,
+    ttl_hours: 48,
     created_at: now,
     updated_at: now,
   }

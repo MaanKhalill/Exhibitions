@@ -89,8 +89,8 @@ const contacts: Contact[] = [
 ]
 
 const invitations: Invitation[] = [
-  { id: uid(), exhibition_id: exhibition.id, token: 'demo-token-1', company_name: 'Guangzhou Bright Lighting Co.', contact_name: 'Lucy Chen', email: 'lucy@brightlighting.com', phone: '+8613800000001', purpose: 'both', internal_notes: 'Top priority — LED panels', status: 'received', supplier_id: suppliers[0].id, response: { participate: 'Yes', hall: '13.1', booth: 'A05', product_summary: 'LED panel lights' }, last_sent_at: now(), responded_at: now(), created_at: now(), updated_at: now() },
-  { id: uid(), exhibition_id: exhibition.id, token: 'demo-token-2', company_name: 'Shenzhen PowerCell Batteries', contact_name: '', email: 'sales@powercell.cn', phone: '', purpose: 'exhibition', internal_notes: '', status: 'sent_whatsapp', supplier_id: null, response: null, last_sent_at: now(), responded_at: null, created_at: now(), updated_at: now() },
+  { id: uid(), exhibition_id: exhibition.id, token: 'demo-token-1', company_name: 'Guangzhou Bright Lighting Co.', contact_name: 'Lucy Chen', email: 'lucy@brightlighting.com', phone: '+8613800000001', purpose: 'both', internal_notes: 'Top priority — LED panels', status: 'received', supplier_id: suppliers[0].id, response: { participate: 'Yes', hall: '13.1', booth: 'A05', product_summary: 'LED panel lights' }, last_sent_at: now(), responded_at: now(), opened_at: now(), expires_at: null, ttl_hours: 48, created_at: now(), updated_at: now() },
+  { id: uid(), exhibition_id: exhibition.id, token: 'demo-token-2', company_name: 'Shenzhen PowerCell Batteries', contact_name: '', email: 'sales@powercell.cn', phone: '', purpose: 'exhibition', internal_notes: '', status: 'sent_whatsapp', supplier_id: null, response: null, last_sent_at: now(), responded_at: null, opened_at: null, expires_at: null, ttl_hours: 48, created_at: now(), updated_at: now() },
 ]
 
 const invitationEvents: InvitationEvent[] = [
@@ -227,6 +227,8 @@ export const demo = {
     return {
       invitation: { company_name: inv.company_name, contact_name: inv.contact_name, email: inv.email, phone: inv.phone, purpose: inv.purpose, already_responded: Boolean(inv.responded_at) },
       exhibition: clone(exhibition),
+      expired: false,
+      expires_at: null,
     }
   },
   submitPublicInvitation: async () => {},
