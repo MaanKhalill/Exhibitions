@@ -180,17 +180,17 @@ export async function flush(): Promise<void> {
 async function apply(op: Op, userId: string): Promise<void> {
   if (op.entity === 'supplier') {
     if (op.action === 'upsert') {
-      const { error } = await supabase.from('suppliers').upsert(supplierRow(op.data))
+      const { error } = await supabase.from('cf_suppliers').upsert(supplierRow(op.data))
       if (error) throw error
     } else {
-      const { error } = await supabase.from('suppliers').delete().eq('id', op.targetId)
+      const { error } = await supabase.from('cf_suppliers').delete().eq('id', op.targetId)
       if (error) throw error
     }
     return
   }
   // product
   if (op.action === 'delete') {
-    const { error } = await supabase.from('products').delete().eq('id', op.targetId)
+    const { error } = await supabase.from('cf_products').delete().eq('id', op.targetId)
     if (error) throw error
     return
   }
@@ -210,7 +210,7 @@ async function apply(op: Op, userId: string): Promise<void> {
       save(CACHE_PRODUCTS, products)
     }
   }
-  const { error } = await supabase.from('products').upsert(productRow(data))
+  const { error } = await supabase.from('cf_products').upsert(productRow(data))
   if (error) throw error
 }
 
@@ -224,8 +224,8 @@ export async function refreshFromServer(): Promise<void> {
   if (outbox.length > 0) return // still pending; keep local view
   try {
     const [sRes, pRes] = await Promise.all([
-      supabase.from('suppliers').select('*'),
-      supabase.from('products').select('*'),
+      supabase.from('cf_suppliers').select('*'),
+      supabase.from('cf_products').select('*'),
     ])
     if (sRes.error) throw sRes.error
     if (pRes.error) throw pRes.error

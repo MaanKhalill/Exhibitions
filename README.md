@@ -35,17 +35,20 @@ connection** and syncs automatically once you're back online.
 
 ## Setup
 
-### 1. Create the Supabase project & schema
+All database objects are prefixed `cf_` (tables, function, policies) and use a
+`cf-photos` storage bucket, so the app can live safely inside a shared Supabase
+project without colliding with anything else in it.
 
-1. In the [Supabase dashboard](https://supabase.com/dashboard), create a project
-   (e.g. **CantonFair**).
+1. In the [Supabase dashboard](https://supabase.com/dashboard), pick a project
+   (a dedicated one, or an existing one you don't mind sharing).
 2. Open the **SQL Editor** and run the two migration files in order:
    - [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) —
-     tables + row-level security.
+     `cf_suppliers` + `cf_products` tables and row-level security.
    - [`supabase/migrations/0002_storage.sql`](supabase/migrations/0002_storage.sql)
-     — private `photos` bucket + policies.
+     — private `cf-photos` bucket + policies.
 3. (Optional) Under **Authentication → Providers → Email**, turn off "Confirm
-   email" if you want to sign in immediately without a confirmation step.
+   email" if you want to sign in immediately without a confirmation step. This
+   is a project-wide setting, so only change it on a project you own.
 
 ### 2. Configure the app
 
@@ -90,10 +93,10 @@ host, then **Add to Home Screen**.
 
 ## Data model
 
-| Table       | Purpose                                              |
-| ----------- | ---------------------------------------------------- |
-| `suppliers` | One row per booth/company you visit.                 |
-| `products`  | Products under a supplier (with a photo in Storage). |
+| Table          | Purpose                                              |
+| -------------- | ---------------------------------------------------- |
+| `cf_suppliers` | One row per booth/company you visit.                 |
+| `cf_products`  | Products under a supplier (with a photo in Storage). |
 
 Both are scoped to the signed-in user via row-level security.
 
