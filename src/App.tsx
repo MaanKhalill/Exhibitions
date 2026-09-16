@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { isConfigured, supabase } from './lib/supabase'
 import { ExhibitionProvider } from './lib/ExhibitionContext'
@@ -18,8 +18,14 @@ import { AddToFair } from './routes/AddToFair'
 import { FairSupplierDetail } from './routes/FairSupplierDetail'
 import { More } from './routes/More'
 import { Placeholder } from './routes/Placeholder'
+import { InvitationsList } from './routes/InvitationsList'
+import { InvitationForm } from './routes/InvitationForm'
+import { InvitationDetail } from './routes/InvitationDetail'
+import { PublicInvite } from './routes/PublicInvite'
 
 export default function App() {
+  const location = useLocation()
+  const isPublic = location.pathname.startsWith('/invite/')
   const [session, setSession] = useState<Session | null>(null)
   const [ready, setReady] = useState(false)
 
@@ -35,6 +41,15 @@ export default function App() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => sub.subscription.unsubscribe()
   }, [])
+
+  // Public supplier form — no login, rendered before the auth gate.
+  if (isPublic) {
+    return (
+      <Routes>
+        <Route path="/invite/:token" element={<PublicInvite />} />
+      </Routes>
+    )
+  }
 
   if (!isConfigured) return <SetupNeeded />
   if (!ready) return <div className="app"><div className="content"><Spinner /></div></div>
@@ -59,6 +74,11 @@ export default function App() {
           <Route path="fair/add" element={<AddToFair />} />
           <Route path="fair/supplier/:supplierId" element={<FairSupplierDetail />} />
 
+          <Route path="invitations" element={<InvitationsList />} />
+          <Route path="invitations/new" element={<InvitationForm />} />
+          <Route path="invitations/:id" element={<InvitationDetail />} />
+          <Route path="invitations/:id/edit" element={<InvitationForm />} />
+
           <Route path="more" element={<More />} />
 
           <Route
@@ -76,10 +96,6 @@ export default function App() {
           <Route
             path="follow-ups"
             element={<Placeholder title="Follow-ups" phase="Phase 8" points={['Quotation, sample, technical-review and negotiation tracking', 'Linked to supplier history and source exhibition', 'Custom follow-up tasks']} />}
-          />
-          <Route
-            path="invitations"
-            element={<Placeholder title="Invitations & forms" phase="Phase 2" points={['Personalized no-login supplier links', 'Bilingual EN / 中文 public forms', 'WhatsApp & email invitations, statuses and reminders']} />}
           />
           <Route
             path="planner"

@@ -721,3 +721,14 @@ textarea {
   .badge.ex-upcoming { background: #1c3151; color: #8ab6f5; }
   .badge.ex-factory_visit { background: #453a17; color: #f2c94c; }
 }
+
+/* invitation personalized link box */
+.linkbox {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  word-break: break-all;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

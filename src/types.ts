@@ -162,3 +162,65 @@ export interface Participation {
 export interface ParticipationWithSupplier extends Participation {
   supplier: Supplier
 }
+
+// ---------- Invitations ----------
+export type InvitationPurpose = 'exhibition' | 'factory' | 'both'
+export const PURPOSE_LABELS: Record<InvitationPurpose, string> = {
+  exhibition: 'Exhibition participation',
+  factory: 'Factory visit',
+  both: 'Exhibition + factory visit',
+}
+
+export type InvitationStatus =
+  | 'not_invited'
+  | 'prepared'
+  | 'sent_whatsapp'
+  | 'sent_email'
+  | 'link_shared'
+  | 'awaiting'
+  | 'received'
+  | 'incomplete'
+  | 'follow_up'
+  | 'meeting_proposed'
+  | 'meeting_confirmed'
+export const INVITATION_STATUS_LABELS: Record<InvitationStatus, string> = {
+  not_invited: 'Not invited',
+  prepared: 'Invitation prepared',
+  sent_whatsapp: 'Sent by WhatsApp',
+  sent_email: 'Sent by email',
+  link_shared: 'Link shared',
+  awaiting: 'Awaiting response',
+  received: 'Response received',
+  incomplete: 'Incomplete response',
+  follow_up: 'Follow-up required',
+  meeting_proposed: 'Meeting proposed',
+  meeting_confirmed: 'Meeting confirmed',
+}
+
+export interface Invitation {
+  id: string
+  user_id?: string
+  exhibition_id: string
+  token: string
+  company_name: string
+  contact_name: string
+  email: string
+  phone: string
+  purpose: InvitationPurpose
+  internal_notes: string
+  status: InvitationStatus
+  supplier_id: string | null
+  response: Record<string, unknown> | null
+  last_sent_at: string | null
+  responded_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface InvitationEvent {
+  id: string
+  invitation_id: string
+  type: string
+  detail: string
+  created_at: string
+}
