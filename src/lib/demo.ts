@@ -19,7 +19,9 @@ import type {
   Profile,
   Supplier,
   SupplierChange,
+  EmailSettings,
 } from '../types'
+import { emptyEmailSettings } from '../types'
 
 export const DEMO = import.meta.env.VITE_DEMO === '1'
 
@@ -151,6 +153,8 @@ let profile: Profile = {
   website: 'www.yourcompany.com',
   bio: 'We source quality products worldwide and attend major trade fairs.',
 }
+
+let emailSettings: EmailSettings = emptyEmailSettings()
 
 // ---- helpers used by the api layer (demo short-circuits) ----
 const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x))
@@ -310,6 +314,13 @@ export const demo = {
   saveProfile: async (p: Profile) => {
     profile = clone(p)
     return clone(profile)
+  },
+
+  // email (SMTP) settings
+  getEmailSettings: async () => clone(emailSettings),
+  saveEmailSettings: async (s: EmailSettings, password?: string) => {
+    emailSettings = { ...clone(s), password_set: emailSettings.password_set || Boolean(password && password.length) }
+    return clone(emailSettings)
   },
 
   // factories

@@ -397,3 +397,20 @@ export function emptyProfile(): Profile {
     bio: '',
   }
 }
+
+// ---------- Per-user email (SMTP) settings ----------
+// The raw password is never read back to the client (write-only); password_set
+// tells the UI whether one is stored.
+export interface EmailSettings {
+  host: string
+  port: number
+  username: string
+  from_email: string
+  from_name: string
+  secure: boolean
+  password_set: boolean
+}
+
+export function emptyEmailSettings(): EmailSettings {
+  return { host: '', port: 465, username: '', from_email: '', from_name: '', secure: true, password_set: false }
+}
