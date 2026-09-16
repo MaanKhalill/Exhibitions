@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { isConfigured, supabase } from './lib/supabase'
@@ -22,6 +22,8 @@ import { InvitationsList } from './routes/InvitationsList'
 import { InvitationForm } from './routes/InvitationForm'
 import { InvitationDetail } from './routes/InvitationDetail'
 import { PublicInvite } from './routes/PublicInvite'
+
+const ScanScreen = lazy(() => import('./routes/ScanScreen').then((m) => ({ default: m.ScanScreen })))
 
 export default function App() {
   const location = useLocation()
@@ -73,6 +75,10 @@ export default function App() {
           <Route path="fair" element={<FairSuppliers />} />
           <Route path="fair/add" element={<AddToFair />} />
           <Route path="fair/supplier/:supplierId" element={<FairSupplierDetail />} />
+          <Route
+            path="fair/supplier/:supplierId/scan"
+            element={<Suspense fallback={<div className="content"><Spinner /></div>}><ScanScreen /></Suspense>}
+          />
 
           <Route path="invitations" element={<InvitationsList />} />
           <Route path="invitations/new" element={<InvitationForm />} />

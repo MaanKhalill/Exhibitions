@@ -1,6 +1,43 @@
+import { useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useExhibitions } from '../lib/ExhibitionContext'
+import { useCaptureQueue } from '../lib/useCaptureQueue'
+import { flushCaptures } from '../lib/captureQueue'
 import { EXHIBITION_STATUS_LABELS } from '../types'
+
+function CaptureStatus() {
+  const q = useCaptureQueue()
+  if (q.pending.length === 0 && q.online) return null
+  let label: string
+  let cls = ''
+  if (q.syncing) {
+    label = 'Synchronizing captures…'
+    cls = 'syncing'
+  } else if (!q.online && q.pending.length > 0) {
+    label = `Offline — ${q.pending.length} capture${q.pending.length === 1 ? '' : 's'} saved locally`
+    cls = 'offline'
+  } else if (q.pending.length > 0) {
+    label = `${q.pending.length} capture${q.pending.length === 1 ? '' : 's'} to upload`
+    cls = 'offline'
+  } else {
+    label = 'Offline'
+    cls = 'offline'
+  }
+  return (
+    <div className="syncbar">
+      <span className={`dot ${cls}`} />
+      <span style={{ flex: 1 }}>{label}</span>
+      {q.online && q.pending.length > 0 && !q.syncing && (
+        <button
+          onClick={() => flushCaptures()}
+          style={{ background: 'none', border: 'none', color: 'var(--red)', font: 'inherit', fontWeight: 600, cursor: 'pointer' }}
+        >
+          Upload now
+        </button>
+      )}
+    </div>
+  )
+}
 
 function ExhibitionSwitcher() {
   const { exhibitions, current, setCurrentId } = useExhibitions()
@@ -39,6 +76,9 @@ const NAV = [
 ]
 
 export function Layout() {
+  useEffect(() => {
+    void flushCaptures()
+  }, [])
   return (
     <div className="app">
       <header className="topbar">
@@ -48,6 +88,8 @@ export function Layout() {
           </div>
         </div>
       </header>
+
+      <CaptureStatus />
 
       <div className="content with-nav">
         <Outlet />

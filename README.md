@@ -97,11 +97,14 @@ host, then **Add to Home Screen**.
 | Phase | Scope | State |
 | ----- | ----- | ----- |
 | 1 | Multi-exhibition foundation, global suppliers/contacts/participations | ✅ Built |
-| 2 | Invitations & bilingual public supplier forms, WhatsApp/email, reminders | Planned |
-| 3 | Live capture & media: card/QR/barcode scan, photos, catalogues, offline queue | Planned |
+| 2 | Invitations & bilingual public supplier forms, WhatsApp/email, reminders | ✅ Built |
+| 3 | Live capture & media: photos, QR/barcode scan, catalogues, offline queue | ✅ Built |
 | 4 | Booth route planner: proximity routing, fixed/flexible meetings, Today view | Planned |
 | 5–6 | Factory map, city clustering, intercity transport optimization, departure safety | Planned |
 | 7–8 | Global search & timeline, Google Calendar, follow-ups, analytics | Planned |
+
+Deferred within built phases (originals/manual entry already work; these are
+enhancements): automatic OCR of business cards and voice-note transcription.
 
 ## Design principles (from the brief)
 

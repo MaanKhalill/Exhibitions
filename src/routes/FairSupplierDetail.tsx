@@ -17,6 +17,7 @@ import {
 } from '../types'
 import { Field, Page, Spinner, ErrorNote } from '../components/ui'
 import { Stars } from '../components/Stars'
+import { CaptureSection } from '../components/CaptureSection'
 
 function toLocalInput(iso: string | null): string {
   if (!iso) return ''
@@ -185,6 +186,12 @@ export function FairSupplierDetail() {
           <textarea value={p.notes} onChange={(e) => set('notes', e.target.value)} />
         </Field>
       </div>
+
+      <CaptureSection
+        supplierId={p.supplier_id}
+        participationId={existing?.id ?? null}
+        exhibitionId={current.id}
+      />
 
       <ErrorNote error={save.error} />
       <div className="actions">

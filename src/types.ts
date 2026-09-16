@@ -224,3 +224,39 @@ export interface InvitationEvent {
   detail: string
   created_at: string
 }
+
+// ---------- Media & scans ----------
+export type MediaKind = 'card' | 'product' | 'booth' | 'catalogue' | 'qr' | 'barcode' | 'note' | 'other'
+export const MEDIA_KIND_LABELS: Record<MediaKind, string> = {
+  card: 'Business card',
+  product: 'Product',
+  booth: 'Booth',
+  catalogue: 'Catalogue',
+  qr: 'QR code',
+  barcode: 'Barcode',
+  note: 'Note',
+  other: 'Other',
+}
+
+export const PRODUCT_FLAGS = [
+  'Interesting',
+  'Request quotation',
+  'Ask specs',
+  'Compare',
+  'Potential order',
+  'Not suitable',
+] as const
+
+export interface MediaItem {
+  id: string
+  user_id?: string
+  exhibition_id: string | null
+  supplier_id: string | null
+  participation_id: string | null
+  kind: MediaKind
+  path: string | null
+  caption: string
+  decoded_content: string
+  flags: string
+  created_at: string
+}
