@@ -4,14 +4,14 @@ import { formatDateRange } from './format'
 
 function purposeAsk(inv: Invitation, lang: 'en' | 'zh'): string {
   if (lang === 'en') {
-    if (inv.purpose === 'factory') return 'your factory address and a possible factory-visit time'
+    if (inv.purpose === 'factory') return 'your full factory address for a possible visit'
     if (inv.purpose === 'both')
-      return 'your booth details and a possible meeting, plus your factory address and a possible factory-visit time'
-    return 'your booth details and a possible meeting time'
+      return 'whether you will exhibit and your booth number, and your full factory address for a possible visit'
+    return 'whether you will exhibit and your booth number, and a possible meeting time'
   }
-  if (inv.purpose === 'factory') return '贵司工厂地址及可安排的参观时间'
-  if (inv.purpose === 'both') return '展位信息、洽谈时间，以及工厂地址和可安排的参观时间'
-  return '展位信息及可安排的洽谈时间'
+  if (inv.purpose === 'factory') return '贵司完整的工厂地址以便安排参观'
+  if (inv.purpose === 'both') return '是否参展及展位号，以及贵司完整的工厂地址以便安排参观'
+  return '是否参展、展位号，以及可安排的洽谈时间'
 }
 
 /** Trip details block (English) built from the exhibition/trip fields. */

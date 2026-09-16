@@ -1,35 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getInvitation, newInvitationToken, saveInvitation } from '../api/invitations'
+import { getInvitation, saveInvitation } from '../api/invitations'
+import { draftInvitation } from '../lib/defaults'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { PURPOSE_LABELS, type Invitation, type InvitationPurpose } from '../types'
 import { Field, Page, Spinner, ErrorNote } from '../components/ui'
-
-function draftInvitation(exhibitionId: string): Invitation {
-  const now = new Date().toISOString()
-  return {
-    id: crypto.randomUUID(),
-    exhibition_id: exhibitionId,
-    token: newInvitationToken(),
-    company_name: '',
-    contact_name: '',
-    email: '',
-    phone: '',
-    purpose: 'exhibition',
-    internal_notes: '',
-    status: 'prepared',
-    supplier_id: null,
-    response: null,
-    last_sent_at: null,
-    responded_at: null,
-    opened_at: null,
-    expires_at: null,
-    ttl_hours: 48,
-    created_at: now,
-    updated_at: now,
-  }
-}
 
 export function InvitationForm() {
   const { id } = useParams()
