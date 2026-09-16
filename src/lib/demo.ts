@@ -18,6 +18,7 @@ import type {
   ParticipationWithSupplier,
   Profile,
   Supplier,
+  SupplierChange,
 } from '../types'
 
 export const DEMO = import.meta.env.VITE_DEMO === '1'
@@ -97,6 +98,21 @@ const invitations: Invitation[] = [
 const invitationEvents: InvitationEvent[] = [
   { id: uid(), invitation_id: invitations[0].id, type: 'sent_whatsapp', detail: 'Sent by WhatsApp', created_at: now() },
   { id: uid(), invitation_id: invitations[0].id, type: 'response_submitted', detail: 'Response received', created_at: now() },
+]
+
+const supplierChanges: SupplierChange[] = [
+  {
+    id: uid(), supplier_id: suppliers[0].id, invitation_id: invitations[0].id,
+    entity: 'supplier', entity_label: '', field: 'phone',
+    old_value: '+8613800000000', new_value: '+8613800000001',
+    source: 'supplier_update', created_at: now(),
+  },
+  {
+    id: uid(), supplier_id: suppliers[0].id, invitation_id: invitations[0].id,
+    entity: 'supplier', entity_label: '', field: 'product_summary',
+    old_value: 'LED lights', new_value: 'LED panel lights, downlights, drivers',
+    source: 'supplier_update', created_at: now(),
+  },
 ]
 
 const media: MediaItem[] = []
@@ -223,6 +239,8 @@ export const demo = {
       .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
     return clone(list[0] ?? null)
   },
+  listSupplierChanges: async (supplierId: string) =>
+    clone(supplierChanges.filter((c) => c.supplier_id === supplierId).sort((a, b) => (a.created_at < b.created_at ? 1 : -1))),
   saveInvitation: async (inv: Invitation) => {
     const i = invitations.findIndex((x) => x.id === inv.id)
     if (i >= 0) invitations[i] = clone(inv)

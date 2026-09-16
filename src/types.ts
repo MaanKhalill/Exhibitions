@@ -338,6 +338,34 @@ export interface SupplierSearchResult {
   snippet: string
 }
 
+// ---------- Supplier change history ----------
+export interface SupplierChange {
+  id: string
+  user_id?: string
+  supplier_id: string
+  invitation_id: string | null
+  entity: string
+  entity_label: string
+  field: string
+  old_value: string
+  new_value: string
+  source: string
+  created_at: string
+}
+
+/** Human labels for the change-history field names. */
+export const CHANGE_FIELD_LABELS: Record<string, string> = {
+  company_name: 'Company name',
+  product_summary: 'Products',
+  website: 'Website',
+  phone: 'Phone',
+  wechat: 'WeChat',
+  email: 'Email',
+  city: 'City',
+  country: 'Country',
+  address: 'Address',
+}
+
 // ---------- App owner profile ----------
 export interface Profile {
   user_id?: string

@@ -3,8 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { deleteSupplier, getSupplier } from '../api/suppliers'
 import { listContactsForSupplier } from '../api/contacts'
 import { listParticipationsForSupplier } from '../api/participations'
+import { listSupplierChanges } from '../api/changes'
 import { useExhibitions } from '../lib/ExhibitionContext'
-import { PRIORITY_LABELS, VISIT_STATUS_LABELS } from '../types'
+import { CHANGE_FIELD_LABELS, PRIORITY_LABELS, VISIT_STATUS_LABELS } from '../types'
 import { Page, Spinner } from '../components/ui'
 import { SupplierUpdateRequest } from '../components/SupplierUpdateRequest'
 
@@ -27,6 +28,7 @@ export function SupplierDetail() {
   const { data: s, isLoading } = useQuery({ queryKey: ['supplier', id], queryFn: () => getSupplier(id!), enabled: Boolean(id) })
   const { data: contacts = [] } = useQuery({ queryKey: ['contacts', id], queryFn: () => listContactsForSupplier(id!), enabled: Boolean(id) })
   const { data: parts = [] } = useQuery({ queryKey: ['supplier-parts', id], queryFn: () => listParticipationsForSupplier(id!), enabled: Boolean(id) })
+  const { data: changes = [] } = useQuery({ queryKey: ['supplier-changes', id], queryFn: () => listSupplierChanges(id!), enabled: Boolean(id) })
 
   const del = useMutation({
     mutationFn: () => deleteSupplier(id!),
@@ -127,6 +129,30 @@ export function SupplierDetail() {
             <div key={c.id} className="kv">
               <span className="k">{c.name}{c.position ? `, ${c.position}` : ''}</span>
               <span className="v">{[c.phone, c.wechat && `WeChat ${c.wechat}`, c.email].filter(Boolean).join(' · ')}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {changes.length > 0 && (
+        <div className="detail-section">
+          <h3>Change history ({changes.length})</h3>
+          <p className="hint" style={{ marginTop: 0 }}>
+            Previous values are kept here whenever a supplier update overwrites them — nothing is lost.
+          </p>
+          {changes.map((c) => (
+            <div key={c.id} className="kv" style={{ alignItems: 'flex-start' }}>
+              <span className="k">
+                {CHANGE_FIELD_LABELS[c.field] || c.field}
+                {c.entity === 'contact' && c.entity_label ? ` · ${c.entity_label}` : ''}
+                <br />
+                <span className="hint" style={{ fontWeight: 400 }}>{new Date(c.created_at).toLocaleDateString()}</span>
+              </span>
+              <span className="v">
+                <span style={{ textDecoration: 'line-through', color: 'var(--muted)' }}>{c.old_value || '—'}</span>
+                {' → '}
+                <b>{c.new_value || '—'}</b>
+              </span>
             </div>
           ))}
         </div>

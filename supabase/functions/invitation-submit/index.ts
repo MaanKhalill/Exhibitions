@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       const { data: cur } = await admin.from('ex_suppliers').select('*').eq('id', supplierId).maybeSingle()
       // Prefer the supplier's freshly submitted value; keep the stored one only
       // when the new value is blank (so an untouched field is never wiped).
-      await admin.from('ex_suppliers').update({
+      const next: Record<string, string> = {
         company_name: nz(companyName, cur?.company_name),
         product_summary: nz(p.product_summary || '', cur?.product_summary),
         website: nz(website, cur?.website),
@@ -94,7 +94,19 @@ Deno.serve(async (req) => {
         city: nz(p.city || '', cur?.city),
         country: nz(p.country || '', cur?.country),
         address: nz(p.address || '', cur?.address),
-      }).eq('id', supplierId)
+      }
+      await admin.from('ex_suppliers').update(next).eq('id', supplierId)
+
+      // Record every overwrite of a previously non-empty field (change history).
+      const tracked = ['company_name', 'product_summary', 'website', 'phone', 'wechat', 'email', 'city', 'country', 'address']
+      const changes = tracked
+        .map((f) => ({ f, oldV: String(cur?.[f] ?? ''), newV: String(next[f] ?? '') }))
+        .filter(({ oldV, newV }) => oldV.trim() && newV !== oldV)
+        .map(({ f, oldV, newV }) => ({
+          user_id: owner, supplier_id: supplierId, invitation_id: inv.id,
+          entity: 'supplier', entity_label: '', field: f, old_value: oldV, new_value: newV,
+        }))
+      if (changes.length) await admin.from('ex_supplier_changes').insert(changes)
     } else {
       const { data: created, error: cErr } = await admin.from('ex_suppliers').insert({
         user_id: owner,
@@ -120,11 +132,20 @@ Deno.serve(async (req) => {
         (c: any) => (c.name || '').trim().toLowerCase() === contactName.trim().toLowerCase(),
       )
       if (match) {
-        await admin.from('ex_contacts').update({
+        const cnext: Record<string, string> = {
           phone: nz(phone, match.phone),
           wechat: nz(p.wechat || '', match.wechat),
           email: nz(p.email || '', match.email),
-        }).eq('id', match.id)
+        }
+        await admin.from('ex_contacts').update(cnext).eq('id', match.id)
+        const cchanges = ['phone', 'wechat', 'email']
+          .map((f) => ({ f, oldV: String((match as any)[f] ?? ''), newV: String(cnext[f] ?? '') }))
+          .filter(({ oldV, newV }) => oldV.trim() && newV !== oldV)
+          .map(({ f, oldV, newV }) => ({
+            user_id: owner, supplier_id: supplierId, invitation_id: inv.id,
+            entity: 'contact', entity_label: match.name || contactName, field: f, old_value: oldV, new_value: newV,
+          }))
+        if (cchanges.length) await admin.from('ex_supplier_changes').insert(cchanges)
       } else {
         await admin.from('ex_contacts').insert({
           user_id: owner, supplier_id: supplierId, name: contactName,
