@@ -12,6 +12,7 @@ interface Item {
 }
 
 const GLOBAL: Item[] = [
+  { to: '/profile', label: 'My profile', icon: '🪪' },
   { to: '/exhibitions', label: 'Exhibitions', icon: '🗓' },
   { to: '/suppliers', label: 'Supplier directory', icon: '🗂' },
   { to: '/search', label: 'Global search', icon: '🔎' },

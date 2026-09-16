@@ -16,6 +16,7 @@ import type {
   MediaItem,
   Participation,
   ParticipationWithSupplier,
+  Profile,
   Supplier,
 } from '../types'
 
@@ -122,6 +123,19 @@ const factories: Factory[] = [
   }),
 ]
 
+let profile: Profile = {
+  owner_name: 'Your Name',
+  company_name: 'Your Company Ltd',
+  address: 'Your address',
+  email: 'you@yourcompany.com',
+  whatsapp: '+971 50 000 0000',
+  wechat: 'your_wechat',
+  phone: '',
+  country: 'United Arab Emirates',
+  website: 'www.yourcompany.com',
+  bio: 'We source quality products worldwide and attend major trade fairs.',
+}
+
 // ---- helpers used by the api layer (demo short-circuits) ----
 const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x))
 
@@ -227,6 +241,7 @@ export const demo = {
     return {
       invitation: { company_name: inv.company_name, contact_name: inv.contact_name, email: inv.email, phone: inv.phone, purpose: inv.purpose, already_responded: Boolean(inv.responded_at) },
       exhibition: clone(exhibition),
+      inviter: clone(profile),
       expired: false,
       expires_at: null,
     }
@@ -264,6 +279,13 @@ export const demo = {
   deleteMedia: async (item: MediaItem) => {
     const i = media.findIndex((x) => x.id === item.id)
     if (i >= 0) media.splice(i, 1)
+  },
+
+  // profile
+  getProfile: async () => clone(profile),
+  saveProfile: async (p: Profile) => {
+    profile = clone(p)
+    return clone(profile)
   },
 
   // factories

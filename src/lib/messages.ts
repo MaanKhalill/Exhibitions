@@ -1,6 +1,25 @@
-import type { Exhibition, Invitation } from '../types'
+import type { Exhibition, Invitation, Profile } from '../types'
 import { inviteUrl } from '../api/invitations'
 import { formatDateRange } from './format'
+
+/** Sender signature block built from the owner profile. */
+export function profileSignature(p?: Profile | null): string {
+  if (!p) return ''
+  const name = [p.owner_name, p.company_name].filter(Boolean).join(', ')
+  const lines = [
+    name,
+    p.whatsapp && `WhatsApp: ${p.whatsapp}`,
+    p.wechat && `WeChat: ${p.wechat}`,
+    p.email && `Email: ${p.email}`,
+    p.website,
+  ].filter(Boolean) as string[]
+  return lines.length ? `———\n${lines.join('\n')}` : ''
+}
+
+function withSig(message: string, profile?: Profile | null): string {
+  const sig = profileSignature(profile)
+  return sig ? `${message}\n\n${sig}` : message
+}
 
 function purposeAsk(inv: Invitation, lang: 'en' | 'zh'): string {
   if (lang === 'en') {
@@ -30,7 +49,7 @@ export function tripDetails(ex: Exhibition | null): string {
 }
 
 /** Bilingual EN + 中文 invitation message for WhatsApp / copy / WeChat. */
-export function invitationMessage(inv: Invitation, ex: Exhibition | null): string {
+export function invitationMessage(inv: Invitation, ex: Exhibition | null, profile?: Profile | null): string {
   const url = inviteUrl(inv.token)
   const greetName = inv.contact_name || inv.company_name || ''
   const exName = ex ? `${ex.name}${ex.edition ? ' ' + ex.edition : ''}` : 'the exhibition'
@@ -51,11 +70,11 @@ export function invitationMessage(inv: Invitation, ex: Exhibition | null): strin
     '链接自首次打开起 48 小时内有效。',
     '谢谢！',
   ].join('\n')
-  return `${en}\n\n———\n\n${zh}`
+  return withSig(`${en}\n\n———\n\n${zh}`, profile)
 }
 
 /** "Please update all your details" message — used for the 24h update link. */
-export function updateRequestMessage(inv: Invitation, ex: Exhibition | null): string {
+export function updateRequestMessage(inv: Invitation, ex: Exhibition | null, profile?: Profile | null): string {
   const url = inviteUrl(inv.token)
   const greetName = inv.contact_name || inv.company_name || ''
   const exName = ex ? `${ex.name}${ex.edition ? ' ' + ex.edition : ''}` : 'the exhibition'
@@ -73,13 +92,14 @@ export function updateRequestMessage(inv: Invitation, ex: Exhibition | null): st
     '为安全起见，此链接自现在起 24 小时内有效。',
     '谢谢！',
   ].join('\n')
-  return `${en}\n\n———\n\n${zh}`
+  return withSig(`${en}\n\n———\n\n${zh}`, profile)
 }
 
-/** Full email body: the bilingual invite plus the sender's trip details. */
-export function emailBody(inv: Invitation, ex: Exhibition | null): string {
+/** Full email body: the bilingual invite, the sender's trip details, and signature. */
+export function emailBody(inv: Invitation, ex: Exhibition | null, profile?: Profile | null): string {
   const trip = tripDetails(ex)
-  return trip ? `${invitationMessage(inv, ex)}\n\n———\n\n${trip}` : invitationMessage(inv, ex)
+  const base = invitationMessage(inv, ex, profile)
+  return trip ? `${base}\n\n———\n\n${trip}` : base
 }
 
 export function emailSubject(ex: Exhibition | null): string {
@@ -93,17 +113,17 @@ function waLink(text: string, phone: string): string {
   return p ? `https://wa.me/${p}?text=${t}` : `https://wa.me/?text=${t}`
 }
 
-export function whatsappLink(inv: Invitation, ex: Exhibition | null): string {
-  return waLink(invitationMessage(inv, ex), inv.phone)
+export function whatsappLink(inv: Invitation, ex: Exhibition | null, profile?: Profile | null): string {
+  return waLink(invitationMessage(inv, ex, profile), inv.phone)
 }
 
-export function whatsappUpdateLink(inv: Invitation, ex: Exhibition | null): string {
-  return waLink(updateRequestMessage(inv, ex), inv.phone)
+export function whatsappUpdateLink(inv: Invitation, ex: Exhibition | null, profile?: Profile | null): string {
+  return waLink(updateRequestMessage(inv, ex, profile), inv.phone)
 }
 
-export function mailtoLink(inv: Invitation, ex: Exhibition | null): string {
+export function mailtoLink(inv: Invitation, ex: Exhibition | null, profile?: Profile | null): string {
   const subject = encodeURIComponent(emailSubject(ex))
-  const body = encodeURIComponent(emailBody(inv, ex))
+  const body = encodeURIComponent(emailBody(inv, ex, profile))
   const to = encodeURIComponent(inv.email || '')
   return `mailto:${to}?subject=${subject}&body=${body}`
 }

@@ -116,6 +116,23 @@ export function PublicInvite() {
         <p className="hint">Please share your details below. No account needed.<br />请填写以下信息，无需注册。</p>
       </div>
 
+      {info.inviter && (info.inviter.owner_name || info.inviter.company_name) && (
+        <div className="detail-section">
+          <h3>Invited by / 邀请方</h3>
+          <p style={{ margin: '0 0 6px', fontWeight: 600 }}>
+            {[info.inviter.owner_name, info.inviter.company_name].filter(Boolean).join(' · ')}
+          </p>
+          {info.inviter.bio && <p className="hint" style={{ marginTop: 0 }}>{info.inviter.bio}</p>}
+          <div className="card-meta">
+            {info.inviter.country && <span>🌍 {info.inviter.country}</span>}
+            {info.inviter.whatsapp && <span>💬 {info.inviter.whatsapp}</span>}
+            {info.inviter.wechat && <span>WeChat {info.inviter.wechat}</span>}
+            {info.inviter.email && <span>✉️ {info.inviter.email}</span>}
+            {info.inviter.website && <span>🌐 {info.inviter.website}</span>}
+          </div>
+        </div>
+      )}
+
       <form onSubmit={submit}>
         <div className="detail-section">
           <h3>Company / 公司</h3>

@@ -1,7 +1,8 @@
 // Public Edge Function (verify_jwt = false). The invitation token is the
 // capability; anonymous callers never touch the tables directly. Records the
-// first-open time (starts the from-first-open validity window) and reports
-// expiry. Returns only supplier-facing fields for prefilling the public form.
+// first-open time (starts the from-first-open validity window), reports expiry,
+// and returns the inviter's public profile so the supplier sees who invited
+// them. Returns only supplier-facing fields for prefilling the public form.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const cors = {
@@ -22,13 +23,12 @@ Deno.serve(async (req) => {
 
     const { data: inv, error } = await admin
       .from('ex_invitations')
-      .select('id, token, company_name, contact_name, email, phone, purpose, status, responded_at, exhibition_id, opened_at, expires_at, ttl_hours')
+      .select('id, token, company_name, contact_name, email, phone, purpose, status, responded_at, exhibition_id, user_id, opened_at, expires_at, ttl_hours')
       .eq('token', token)
       .maybeSingle()
     if (error) return json({ error: error.message }, 500)
     if (!inv) return json({ error: 'Invitation not found' }, 404)
 
-    // Record first open (starts the from-first-open validity window).
     let opened = inv.opened_at as string | null
     if (!opened) {
       opened = new Date().toISOString()
@@ -47,6 +47,12 @@ Deno.serve(async (req) => {
       .eq('id', inv.exhibition_id)
       .maybeSingle()
 
+    const { data: prof } = await admin
+      .from('ex_profiles')
+      .select('owner_name, company_name, whatsapp, wechat, email, website, country, bio, address')
+      .eq('user_id', inv.user_id)
+      .maybeSingle()
+
     return json({
       invitation: {
         company_name: inv.company_name,
@@ -59,6 +65,7 @@ Deno.serve(async (req) => {
           ['received', 'incomplete', 'meeting_proposed', 'meeting_confirmed'].includes(inv.status),
       },
       exhibition: ex ?? null,
+      inviter: prof ?? null,
       expired,
       expires_at: effExpiry != null ? new Date(effExpiry).toISOString() : null,
     })

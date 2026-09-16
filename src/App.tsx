@@ -31,6 +31,7 @@ import { Search } from './routes/Search'
 import { Contacts } from './routes/Contacts'
 import { FollowUps } from './routes/FollowUps'
 import { Analytics } from './routes/Analytics'
+import { ProfilePage } from './routes/ProfilePage'
 
 const ScanScreen = lazy(() => import('./routes/ScanScreen').then((m) => ({ default: m.ScanScreen })))
 
@@ -106,6 +107,7 @@ function AdminApp() {
           <Route path="search" element={<Search />} />
           <Route path="contacts" element={<Contacts />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route
             path="factories"
             element={<Placeholder title="Factories" phase="Phase 5" points={['Factory locations with verification status', 'Map & dynamic city clustering', 'Nearest airport / high-speed rail and transfer times']} />}

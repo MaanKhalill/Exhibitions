@@ -337,3 +337,35 @@ export interface SupplierSearchResult {
   exhibitions: ExhibitionRef[]
   snippet: string
 }
+
+// ---------- App owner profile ----------
+export interface Profile {
+  user_id?: string
+  owner_name: string
+  company_name: string
+  address: string
+  email: string
+  whatsapp: string
+  wechat: string
+  phone: string
+  country: string
+  website: string
+  bio: string
+  created_at?: string
+  updated_at?: string
+}
+
+export function emptyProfile(): Profile {
+  return {
+    owner_name: '',
+    company_name: '',
+    address: '',
+    email: '',
+    whatsapp: '',
+    wechat: '',
+    phone: '',
+    country: '',
+    website: '',
+    bio: '',
+  }
+}

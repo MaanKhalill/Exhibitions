@@ -113,6 +113,17 @@ export interface PublicInvitationInfo {
     trip_start: string | null
     trip_end: string | null
   } | null
+  inviter?: {
+    owner_name: string
+    company_name: string
+    whatsapp: string
+    wechat: string
+    email: string
+    website: string
+    country: string
+    bio: string
+    address: string
+  } | null
   expired?: boolean
   expires_at?: string | null
 }

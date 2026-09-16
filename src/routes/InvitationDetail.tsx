@@ -11,6 +11,7 @@ import {
   setInvitationStatus,
 } from '../api/invitations'
 import { getExhibition } from '../api/exhibitions'
+import { getProfile } from '../api/profile'
 import { sendInvitationEmail } from '../api/email'
 import { emailBody, emailSubject, invitationMessage, mailtoLink, whatsappLink, whatsappUpdateLink } from '../lib/messages'
 import { INVITATION_STATUS_LABELS, type InvitationStatus } from '../types'
@@ -29,6 +30,7 @@ export function InvitationDetail() {
     enabled: Boolean(inv),
   })
   const { data: events = [] } = useQuery({ queryKey: ['invitation-events', id], queryFn: () => listInvitationEvents(id!), enabled: Boolean(id) })
+  const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: () => getProfile() })
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ['invitation', id] })
@@ -61,7 +63,7 @@ export function InvitationDetail() {
   const emailNow = useMutation({
     mutationFn: async () => {
       if (!inv) return
-      const r = await sendInvitationEmail(inv.id, emailSubject(ex ?? null), emailBody(inv, ex ?? null))
+      const r = await sendInvitationEmail(inv.id, emailSubject(ex ?? null), emailBody(inv, ex ?? null, profile))
       await setInvitationStatus(inv.id, 'sent_email')
       await addInvitationEvent(inv.id, 'email_sent', `Email sent to ${r.to}`)
     },
@@ -96,16 +98,16 @@ export function InvitationDetail() {
     mark.mutate({ status: inv.status === 'prepared' ? 'link_shared' : undefined, event: 'link_copied' })
   }
   const sendWhatsApp = () => {
-    window.open(whatsappLink(inv, ex ?? null), '_blank')
+    window.open(whatsappLink(inv, ex ?? null, profile), '_blank')
     mark.mutate({ status: 'sent_whatsapp', event: 'sent_whatsapp' })
   }
   const sendEmail = () => {
-    window.location.href = mailtoLink(inv, ex ?? null)
+    window.location.href = mailtoLink(inv, ex ?? null, profile)
     mark.mutate({ status: 'sent_email', event: 'sent_email' })
   }
   const copyMessage = async () => {
     try {
-      await navigator.clipboard.writeText(invitationMessage(inv, ex ?? null))
+      await navigator.clipboard.writeText(invitationMessage(inv, ex ?? null, profile))
     } catch {
       /* ignore */
     }
@@ -113,7 +115,7 @@ export function InvitationDetail() {
   }
   const sendUpdate = () => {
     // Open WhatsApp first (avoids popup blocking), then start the 24h window.
-    window.open(whatsappUpdateLink(inv, ex ?? null), '_blank')
+    window.open(whatsappUpdateLink(inv, ex ?? null, profile), '_blank')
     updateReq.mutate()
   }
 
