@@ -3,6 +3,11 @@
 // against the owning admin's suppliers, then links/creates the supplier and
 // upserts the exhibition participation. Anonymous callers never touch the
 // tables directly and never see internal fields.
+//
+// Overwrite policy: a value the supplier provides REPLACES the stored one
+// (their latest submission wins — this powers "update your data"), but a blank
+// field never wipes existing data. Exhibition history (participations, media)
+// is kept per exhibition and is never overwritten across exhibitions.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const cors = {
@@ -76,17 +81,19 @@ Deno.serve(async (req) => {
 
     if (supplierId) {
       const { data: cur } = await admin.from('ex_suppliers').select('*').eq('id', supplierId).maybeSingle()
+      // Prefer the supplier's freshly submitted value; keep the stored one only
+      // when the new value is blank (so an untouched field is never wiped).
       await admin.from('ex_suppliers').update({
-        company_name: nz(cur?.company_name, companyName),
-        product_summary: nz(cur?.product_summary, p.product_summary || ''),
-        website: nz(cur?.website, website),
-        domain: nz(cur?.domain, domain),
-        phone: nz(cur?.phone, phone),
-        wechat: nz(cur?.wechat, p.wechat || ''),
-        email: nz(cur?.email, p.email || ''),
-        city: nz(cur?.city, p.city || ''),
-        country: nz(cur?.country, p.country || ''),
-        address: nz(cur?.address, p.address || ''),
+        company_name: nz(companyName, cur?.company_name),
+        product_summary: nz(p.product_summary || '', cur?.product_summary),
+        website: nz(website, cur?.website),
+        domain: nz(domain, cur?.domain),
+        phone: nz(phone, cur?.phone),
+        wechat: nz(p.wechat || '', cur?.wechat),
+        email: nz(p.email || '', cur?.email),
+        city: nz(p.city || '', cur?.city),
+        country: nz(p.country || '', cur?.country),
+        address: nz(p.address || '', cur?.address),
       }).eq('id', supplierId)
     } else {
       const { data: created, error: cErr } = await admin.from('ex_suppliers').insert({
@@ -105,8 +112,20 @@ Deno.serve(async (req) => {
 
     const contactName = p.contact_name || inv.contact_name || ''
     if (contactName) {
-      const { count } = await admin.from('ex_contacts').select('id', { count: 'exact', head: true }).eq('supplier_id', supplierId)
-      if (!count) {
+      // Refresh the contact of the same name if we already have one (new values
+      // win, blanks keep the old); otherwise add them as a new contact.
+      const { data: existingContacts } = await admin
+        .from('ex_contacts').select('id, name, phone, wechat, email').eq('supplier_id', supplierId)
+      const match = (existingContacts || []).find(
+        (c: any) => (c.name || '').trim().toLowerCase() === contactName.trim().toLowerCase(),
+      )
+      if (match) {
+        await admin.from('ex_contacts').update({
+          phone: nz(phone, match.phone),
+          wechat: nz(p.wechat || '', match.wechat),
+          email: nz(p.email || '', match.email),
+        }).eq('id', match.id)
+      } else {
         await admin.from('ex_contacts').insert({
           user_id: owner, supplier_id: supplierId, name: contactName,
           phone, wechat: p.wechat || '', email: p.email || '',
