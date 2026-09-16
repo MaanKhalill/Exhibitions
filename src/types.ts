@@ -261,3 +261,54 @@ export interface MediaItem {
   flags: string
   created_at: string
 }
+
+// ---------- Factories (Phase 5-6) ----------
+export type FactoryVerified = 'verified' | 'needs'
+export type VisitPossible = 'yes' | 'no' | 'tbc'
+export const VISIT_POSSIBLE_LABELS: Record<VisitPossible, string> = {
+  yes: 'Visit possible',
+  no: 'Not possible',
+  tbc: 'To be confirmed',
+}
+
+export interface Factory {
+  id: string
+  user_id?: string
+  supplier_id: string
+  city: string
+  province: string
+  district: string
+  address: string
+  lat: number | null
+  lng: number | null
+  map_link: string
+  nearest_airport: string
+  nearest_rail: string
+  transfer_air_min: number | null
+  transfer_rail_min: number | null
+  door_rail_min: number | null
+  door_air_min: number | null
+  door_car_min: number | null
+  best_mode: string
+  verified: FactoryVerified
+  visit_possible: VisitPossible
+  meeting_datetime: string | null
+  meeting_fixed: boolean
+  duration_min: number
+  working_hours: string
+  weekend: string
+  contact_name: string
+  contact_phone: string
+  priority: Priority
+  plan_day: string | null
+  notes: string
+  created_at: string
+  updated_at: string
+}
+
+/** A factory-visit candidate = a factory-flagged participation + its supplier + factory record. */
+export interface FactoryCandidate {
+  supplier: Supplier
+  participation: Participation
+  factory: Factory | null
+}

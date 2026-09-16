@@ -5,11 +5,12 @@
  * and no network. The real app uses Supabase; these helpers mirror the api/*
  * layer so components are unchanged.
  */
-import { cantonFairAutumn2026, draftSupplier } from './defaults'
+import { cantonFairAutumn2026, draftFactory, draftSupplier } from './defaults'
 import { parseBooth } from './booth'
 import type {
   Contact,
   Exhibition,
+  Factory,
   Invitation,
   InvitationEvent,
   MediaItem,
@@ -110,6 +111,16 @@ function placeholder(label: string, color: string): string {
   mediaBlobs.set(path, placeholder(label, i ? '#8f1e22' : '#b8272c'))
   media.push({ id: uid(), exhibition_id: exhibition.id, supplier_id: suppliers[0].id, participation_id: participations[0].id, kind: 'product', path, caption: label, decoded_content: '', flags: i ? 'Request quotation' : 'Interesting', created_at: now() })
 })
+
+const factories: Factory[] = [
+  draftFactory(suppliers[1].id, {
+    city: 'Shenzhen', province: 'Guangdong', address: 'Baoan District, Shenzhen',
+    verified: 'verified', visit_possible: 'yes',
+    nearest_rail: 'Shenzhen North', nearest_airport: 'Shenzhen Baoan (SZX)',
+    door_rail_min: 40, door_car_min: 120, plan_day: '2026-10-20',
+    contact_name: 'Lucy Chen', priority: 'worth',
+  }),
+]
 
 // ---- helpers used by the api layer (demo short-circuits) ----
 const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x))
@@ -251,5 +262,14 @@ export const demo = {
   deleteMedia: async (item: MediaItem) => {
     const i = media.findIndex((x) => x.id === item.id)
     if (i >= 0) media.splice(i, 1)
+  },
+
+  // factories
+  listFactories: async () => clone(factories),
+  saveFactory: async (f: Factory) => {
+    const i = factories.findIndex((x) => x.supplier_id === f.supplier_id)
+    if (i >= 0) factories[i] = clone(f)
+    else factories.push(clone(f))
+    return clone(f)
   },
 }

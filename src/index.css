@@ -941,3 +941,10 @@ label.mini input { margin-top: 2px; }
   color: var(--muted);
   margin-bottom: 2px;
 }
+
+/* three-column input row (factory transport comparison) */
+.row3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}

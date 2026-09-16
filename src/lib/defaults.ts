@@ -1,4 +1,4 @@
-import type { Exhibition, Participation, Supplier } from '../types'
+import type { Exhibition, Factory, Participation, Supplier } from '../types'
 
 export function draftExhibition(partial: Partial<Exhibition> = {}): Exhibition {
   const now = new Date().toISOString()
@@ -106,6 +106,44 @@ export function draftParticipation(
     notes: '',
     discovered_onsite: false,
     plan_day: null,
+    created_at: now,
+    updated_at: now,
+    ...partial,
+  }
+}
+
+export function draftFactory(supplierId: string, partial: Partial<Factory> = {}): Factory {
+  const now = new Date().toISOString()
+  return {
+    id: crypto.randomUUID(),
+    supplier_id: supplierId,
+    city: '',
+    province: '',
+    district: '',
+    address: '',
+    lat: null,
+    lng: null,
+    map_link: '',
+    nearest_airport: '',
+    nearest_rail: '',
+    transfer_air_min: null,
+    transfer_rail_min: null,
+    door_rail_min: null,
+    door_air_min: null,
+    door_car_min: null,
+    best_mode: '',
+    verified: 'needs',
+    visit_possible: 'tbc',
+    meeting_datetime: null,
+    meeting_fixed: false,
+    duration_min: 120,
+    working_hours: '',
+    weekend: '',
+    contact_name: '',
+    contact_phone: '',
+    priority: 'tbd',
+    plan_day: null,
+    notes: '',
     created_at: now,
     updated_at: now,
     ...partial,

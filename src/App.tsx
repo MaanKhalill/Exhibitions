@@ -26,6 +26,7 @@ import { PublicInvite } from './routes/PublicInvite'
 import { Planner } from './routes/Planner'
 import { TodayRoute } from './routes/TodayRoute'
 import { DailyReview } from './routes/DailyReview'
+import { FactoryPlanner } from './routes/FactoryPlanner'
 
 const ScanScreen = lazy(() => import('./routes/ScanScreen').then((m) => ({ default: m.ScanScreen })))
 
@@ -116,10 +117,7 @@ function AdminApp() {
           />
           <Route path="planner" element={<Planner />} />
           <Route path="today" element={<TodayRoute />} />
-          <Route
-            path="factory-plan"
-            element={<Placeholder title="Factory candidates & map" phase="Phase 5–6" points={['Cluster factories by city and travel time', 'Compare rail / flight / car door-to-door', 'Protect the final departure from Guangzhou']} />}
-          />
+          <Route path="factory-plan" element={<FactoryPlanner />} />
           <Route path="daily-review" element={<DailyReview />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />

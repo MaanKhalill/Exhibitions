@@ -26,7 +26,7 @@ const IN_EXHIBITION: Item[] = [
   { to: '/invitations', label: 'Invitations & forms', icon: '✉️' },
   { to: '/planner', label: 'Booth route planner', icon: '🧭' },
   { to: '/today', label: "Today's route", icon: '📍' },
-  { to: '/factory-plan', label: 'Factory candidates & map', icon: '🗺', soon: true },
+  { to: '/factory-plan', label: 'Factory candidates & map', icon: '🗺' },
   { to: '/daily-review', label: 'Daily review', icon: '🌙' },
 ]
 

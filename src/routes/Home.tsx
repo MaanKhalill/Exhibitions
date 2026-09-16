@@ -119,7 +119,7 @@ function Dashboard({ exhibitionId }: { exhibitionId: string }) {
         <div className="statgrid">
           <Stat n={parts.length} label="Suppliers" to="/fair" />
           <Stat n={must} label="Must visit" to="/fair" />
-          <Stat n={factory} label="Factory candidates" to="/fair" />
+          <Stat n={factory} label="Factory candidates" to="/factory-plan" />
           <Stat n={completed} label="Completed" to="/fair" />
           <Stat n={followUps} label="Follow-ups" to="/fair" />
         </div>
