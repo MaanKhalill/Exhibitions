@@ -1,7 +1,17 @@
 import { supabase } from '../lib/supabase'
 import { DEMO, demo } from '../lib/demo'
 import { parseBooth } from '../lib/booth'
-import type { Participation, ParticipationWithSupplier } from '../types'
+import type { Participation, ParticipationWithContext, ParticipationWithSupplier } from '../types'
+
+/** Every participation across all exhibitions (for follow-ups & analytics). */
+export async function listAllParticipations(): Promise<ParticipationWithContext[]> {
+  if (DEMO) return demo.listAllParticipations()
+  const { data, error } = await supabase
+    .from('ex_participations')
+    .select('*, supplier:ex_suppliers(*), exhibition:ex_exhibitions(id,name,edition,status)')
+  if (error) throw error
+  return (data as ParticipationWithContext[]) ?? []
+}
 
 const TABLE = 'ex_participations'
 

@@ -1,6 +1,17 @@
 import { supabase } from '../lib/supabase'
 import { DEMO, demo } from '../lib/demo'
-import type { Contact } from '../types'
+import type { Contact, ContactWithSupplier } from '../types'
+
+/** All contacts across suppliers (global contact directory). */
+export async function listAllContacts(): Promise<ContactWithSupplier[]> {
+  if (DEMO) return demo.listAllContacts()
+  const { data, error } = await supabase
+    .from('ex_contacts')
+    .select('*, supplier:ex_suppliers(id,company_name)')
+    .order('name', { ascending: true })
+  if (error) throw error
+  return (data as ContactWithSupplier[]) ?? []
+}
 
 const TABLE = 'ex_contacts'
 

@@ -3,10 +3,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { saveExhibition } from '../api/exhibitions'
 import { listParticipations } from '../api/participations'
+import { listFactories } from '../api/factories'
 import { cantonFairAutumn2026 } from '../lib/defaults'
 import { EXHIBITION_STATUS_LABELS } from '../types'
 import { Page, Spinner } from '../components/ui'
 import { formatDateRange, daysUntil } from '../lib/format'
+import { buildIcs, calendarEvents, downloadIcs } from '../lib/ics'
 
 export function Home() {
   const { exhibitions, loading, current } = useExhibitions()
@@ -80,6 +82,17 @@ function Dashboard({ exhibitionId }: { exhibitionId: string }) {
     queryKey: ['participations', exhibitionId],
     queryFn: () => listParticipations(exhibitionId),
   })
+  const { data: factories = [] } = useQuery({ queryKey: ['factories'], queryFn: () => listFactories() })
+
+  function exportCalendar() {
+    if (!current) return
+    const events = calendarEvents(current, parts, factories)
+    if (events.length === 0) {
+      alert('No confirmed meetings or scheduled factory visits yet. Set meeting times or factory-visit days first.')
+      return
+    }
+    downloadIcs(`${current.name.replace(/\s+/g, '-').toLowerCase()}.ics`, buildIcs(events))
+  }
 
   if (!current) return <Spinner />
   const must = parts.filter((p) => p.priority === 'must').length
@@ -136,6 +149,10 @@ function Dashboard({ exhibitionId }: { exhibitionId: string }) {
       <div className="toolbar">
         <button className="btn" onClick={() => navigate('/today')}>📍 Today's route</button>
         <button className="btn" onClick={() => navigate('/planner')}>🧭 Plan days</button>
+      </div>
+      <div className="toolbar">
+        <button className="btn" onClick={() => navigate('/factory-plan')}>🏭 Factories</button>
+        <button className="btn" onClick={exportCalendar}>📅 Calendar</button>
       </div>
 
       <button className="btn ghost block" onClick={() => navigate(`/exhibitions/${current.id}/edit`)}>

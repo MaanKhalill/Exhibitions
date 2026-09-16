@@ -312,3 +312,25 @@ export interface FactoryCandidate {
   participation: Participation
   factory: Factory | null
 }
+
+// ---------- Cross-exhibition views (Phase 7-8) ----------
+export interface ExhibitionRef {
+  id: string
+  name: string
+  edition: string
+  status?: ExhibitionStatus
+}
+
+export interface ParticipationWithContext extends ParticipationWithSupplier {
+  exhibition: ExhibitionRef | null
+}
+
+export interface ContactWithSupplier extends Contact {
+  supplier: { id: string; company_name: string } | null
+}
+
+export interface SupplierSearchResult {
+  supplier: Supplier
+  exhibitions: ExhibitionRef[]
+  snippet: string
+}

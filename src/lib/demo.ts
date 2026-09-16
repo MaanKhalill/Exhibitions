@@ -272,4 +272,31 @@ export const demo = {
     else factories.push(clone(f))
     return clone(f)
   },
+
+  // cross-exhibition (Phase 7-8)
+  listAllParticipations: async () =>
+    clone(participations).map((p: Participation) => ({
+      ...p,
+      supplier: clone(suppliers.find((s) => s.id === p.supplier_id)!),
+      exhibition: { id: exhibition.id, name: exhibition.name, edition: exhibition.edition, status: exhibition.status },
+    })),
+  listAllContacts: async () =>
+    clone(contacts).map((c: Contact) => {
+      const s = suppliers.find((x) => x.id === c.supplier_id)
+      return { ...c, supplier: s ? { id: s.id, company_name: s.company_name } : null }
+    }),
+  globalSearch: async (term: string) => {
+    const q = term.trim().toLowerCase()
+    if (!q) return []
+    const ex = { id: exhibition.id, name: exhibition.name, edition: exhibition.edition, status: exhibition.status }
+    return suppliers
+      .filter((s) =>
+        [s.company_name, s.product_summary, s.city, s.country, s.website, s.notes].join(' ').toLowerCase().includes(q),
+      )
+      .map((s) => ({
+        supplier: clone(s),
+        exhibitions: participations.some((p) => p.supplier_id === s.id) ? [ex] : [],
+        snippet: s.product_summary,
+      }))
+  },
 }

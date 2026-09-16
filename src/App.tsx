@@ -27,6 +27,10 @@ import { Planner } from './routes/Planner'
 import { TodayRoute } from './routes/TodayRoute'
 import { DailyReview } from './routes/DailyReview'
 import { FactoryPlanner } from './routes/FactoryPlanner'
+import { Search } from './routes/Search'
+import { Contacts } from './routes/Contacts'
+import { FollowUps } from './routes/FollowUps'
+import { Analytics } from './routes/Analytics'
 
 const ScanScreen = lazy(() => import('./routes/ScanScreen').then((m) => ({ default: m.ScanScreen })))
 
@@ -99,22 +103,14 @@ function AdminApp() {
 
           <Route path="more" element={<More />} />
 
-          <Route
-            path="search"
-            element={<Placeholder title="Global search" phase="Phase 7" points={['Search suppliers by company, product text, city, country, exhibition and notes', 'Natural-language product discovery across every exhibition', 'Explain why each supplier matches']} />}
-          />
-          <Route
-            path="contacts"
-            element={<Placeholder title="Contacts" phase="Phase 7" points={['Permanent people linked to suppliers', 'First met / last met and every exhibition encountered', 'Business-card images kept as source evidence']} />}
-          />
+          <Route path="search" element={<Search />} />
+          <Route path="contacts" element={<Contacts />} />
+          <Route path="analytics" element={<Analytics />} />
           <Route
             path="factories"
             element={<Placeholder title="Factories" phase="Phase 5" points={['Factory locations with verification status', 'Map & dynamic city clustering', 'Nearest airport / high-speed rail and transfer times']} />}
           />
-          <Route
-            path="follow-ups"
-            element={<Placeholder title="Follow-ups" phase="Phase 8" points={['Quotation, sample, technical-review and negotiation tracking', 'Linked to supplier history and source exhibition', 'Custom follow-up tasks']} />}
-          />
+          <Route path="follow-ups" element={<FollowUps />} />
           <Route path="planner" element={<Planner />} />
           <Route path="today" element={<TodayRoute />} />
           <Route path="factory-plan" element={<FactoryPlanner />} />

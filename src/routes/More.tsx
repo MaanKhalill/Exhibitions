@@ -14,10 +14,10 @@ interface Item {
 const GLOBAL: Item[] = [
   { to: '/exhibitions', label: 'Exhibitions', icon: '🗓' },
   { to: '/suppliers', label: 'Supplier directory', icon: '🗂' },
-  { to: '/search', label: 'Global search', icon: '🔎', soon: true },
-  { to: '/contacts', label: 'Contacts', icon: '👤', soon: true },
-  { to: '/factories', label: 'Factories', icon: '🏭', soon: true },
-  { to: '/follow-ups', label: 'Follow-ups', icon: '✅', soon: true },
+  { to: '/search', label: 'Global search', icon: '🔎' },
+  { to: '/contacts', label: 'Contacts', icon: '👤' },
+  { to: '/follow-ups', label: 'Follow-ups', icon: '✅' },
+  { to: '/analytics', label: 'Analytics', icon: '📊' },
 ]
 
 const IN_EXHIBITION: Item[] = [
