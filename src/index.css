@@ -874,3 +874,70 @@ textarea {
 @media (prefers-color-scheme: dark) {
   .demo-ribbon { background: #12203a; }
 }
+
+/* ============ Phase 4: route planner ============ */
+label.mini {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+label.mini input { margin-top: 2px; }
+
+.capbar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.capbar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.nowcard {
+  background: var(--red);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(184, 39, 44, 0.35);
+  margin-bottom: 12px;
+}
+.nowcard h2 { color: #fff; font-size: 22px; }
+.nowcard .card-meta { color: rgba(255, 255, 255, 0.9); }
+.nowtag {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+}
+.nowcard .btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.nowcard .btn.primary {
+  background: #fff;
+  color: var(--red);
+}
+.nowcard a.btn { background: rgba(255, 255, 255, 0.18); color: #fff; }
+
+.nextcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.nexttag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 2px;
+}

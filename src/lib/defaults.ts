@@ -105,6 +105,7 @@ export function draftParticipation(
     factory_candidate: false,
     notes: '',
     discovered_onsite: false,
+    plan_day: null,
     created_at: now,
     updated_at: now,
     ...partial,

@@ -24,10 +24,10 @@ const IN_EXHIBITION: Item[] = [
   { to: '/fair', label: 'Fair suppliers', icon: '📋' },
   { to: '/fair/add', label: 'New supplier capture', icon: '＋' },
   { to: '/invitations', label: 'Invitations & forms', icon: '✉️' },
-  { to: '/planner', label: 'Booth route planner', icon: '🧭', soon: true },
-  { to: '/today', label: "Today's route", icon: '📍', soon: true },
+  { to: '/planner', label: 'Booth route planner', icon: '🧭' },
+  { to: '/today', label: "Today's route", icon: '📍' },
   { to: '/factory-plan', label: 'Factory candidates & map', icon: '🗺', soon: true },
-  { to: '/daily-review', label: 'Daily review', icon: '🌙', soon: true },
+  { to: '/daily-review', label: 'Daily review', icon: '🌙' },
 ]
 
 function MenuList({ items }: { items: Item[] }) {

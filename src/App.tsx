@@ -23,6 +23,9 @@ import { InvitationsList } from './routes/InvitationsList'
 import { InvitationForm } from './routes/InvitationForm'
 import { InvitationDetail } from './routes/InvitationDetail'
 import { PublicInvite } from './routes/PublicInvite'
+import { Planner } from './routes/Planner'
+import { TodayRoute } from './routes/TodayRoute'
+import { DailyReview } from './routes/DailyReview'
 
 const ScanScreen = lazy(() => import('./routes/ScanScreen').then((m) => ({ default: m.ScanScreen })))
 
@@ -111,22 +114,13 @@ function AdminApp() {
             path="follow-ups"
             element={<Placeholder title="Follow-ups" phase="Phase 8" points={['Quotation, sample, technical-review and negotiation tracking', 'Linked to supplier history and source exhibition', 'Custom follow-up tasks']} />}
           />
-          <Route
-            path="planner"
-            element={<Placeholder title="Booth route planner" phase="Phase 4" points={['Hall grouping and booth-proximity routing', 'Fixed vs flexible meetings with walking buffers', 'Reserved open-sourcing time for discoveries']} />}
-          />
-          <Route
-            path="today"
-            element={<Placeholder title="Today's route" phase="Phase 4" points={['NOW / NEXT mobile view while walking', 'Arrived / Complete / Skip / Reschedule', 'Recalculate the remaining day instantly']} />}
-          />
+          <Route path="planner" element={<Planner />} />
+          <Route path="today" element={<TodayRoute />} />
           <Route
             path="factory-plan"
             element={<Placeholder title="Factory candidates & map" phase="Phase 5–6" points={['Cluster factories by city and travel time', 'Compare rail / flight / car door-to-door', 'Protect the final departure from Guangzhou']} />}
           />
-          <Route
-            path="daily-review"
-            element={<Placeholder title="Daily review" phase="Phase 4" points={['End-of-day summary of visits and discoveries', 'Move missed visits to tomorrow', 'Recalculate the next day']} />}
-          />
+          <Route path="daily-review" element={<DailyReview />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

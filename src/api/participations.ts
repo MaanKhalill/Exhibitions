@@ -73,3 +73,13 @@ export async function deleteParticipation(id: string): Promise<void> {
   const { error } = await supabase.from(TABLE).delete().eq('id', id)
   if (error) throw error
 }
+
+/** Partial update by id (e.g. plan_day, visit_status) for the planner. */
+export async function patchParticipation(
+  id: string,
+  patch: Partial<Participation>,
+): Promise<void> {
+  if (DEMO) return demo.patchParticipation(id, patch)
+  const { error } = await supabase.from(TABLE).update(patch).eq('id', id)
+  if (error) throw error
+}

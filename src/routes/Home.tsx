@@ -133,6 +133,10 @@ function Dashboard({ exhibitionId }: { exhibitionId: string }) {
           View fair list
         </button>
       </div>
+      <div className="toolbar">
+        <button className="btn" onClick={() => navigate('/today')}>📍 Today's route</button>
+        <button className="btn" onClick={() => navigate('/planner')}>🧭 Plan days</button>
+      </div>
 
       <button className="btn ghost block" onClick={() => navigate(`/exhibitions/${current.id}/edit`)}>
         Edit exhibition details

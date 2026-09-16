@@ -154,6 +154,7 @@ export interface Participation {
   factory_candidate: boolean
   notes: string
   discovered_onsite: boolean
+  plan_day: string | null
   created_at: string
   updated_at: string
 }

@@ -69,6 +69,7 @@ function seedPart(idx: number, partial: Partial<Participation>): Participation {
     factory_candidate: false,
     notes: '',
     discovered_onsite: false,
+    plan_day: null,
     created_at: now(),
     updated_at: now(),
     ...partial,
@@ -76,9 +77,9 @@ function seedPart(idx: number, partial: Partial<Participation>): Participation {
 }
 
 const participations: Participation[] = [
-  seedPart(0, { booth_raw: '13.1 A05', hall: '13.1', priority: 'must', rating: 4, visit_status: 'confirmed', confirmed_meeting: '2026-10-15T10:00:00.000Z', meeting_fixed: true, interest_level: 'high', follow_up: 'Request Quotation' }),
-  seedPart(1, { booth_raw: '9.2 C21', hall: '9.2', priority: 'worth', rating: 3, factory_candidate: true, follow_up: 'Factory Visit' }),
-  seedPart(2, { booth_raw: '4.1 B12', hall: '4.1', priority: 'optional', visit_status: 'completed', rating: 5 }),
+  seedPart(0, { booth_raw: '13.1 A05', hall: '13.1', priority: 'must', rating: 4, visit_status: 'confirmed', confirmed_meeting: '2026-10-15T10:00:00.000Z', meeting_fixed: true, interest_level: 'high', follow_up: 'Request Quotation', plan_day: '2026-10-15' }),
+  seedPart(1, { booth_raw: '9.2 C21', hall: '9.2', priority: 'worth', rating: 3, factory_candidate: true, follow_up: 'Factory Visit', plan_day: '2026-10-15' }),
+  seedPart(2, { booth_raw: '4.1 B12', hall: '4.1', priority: 'optional', visit_status: 'completed', rating: 5, plan_day: '2026-10-16' }),
   seedPart(3, { booth_raw: '10.3 D30', hall: '10.3', priority: 'tbd', discovered_onsite: true }),
 ]
 
@@ -169,6 +170,10 @@ export const demo = {
   deleteParticipation: async (id: string) => {
     const i = participations.findIndex((x) => x.id === id)
     if (i >= 0) participations.splice(i, 1)
+  },
+  patchParticipation: async (id: string, patch: Partial<Participation>) => {
+    const p = participations.find((x) => x.id === id)
+    if (p) Object.assign(p, patch)
   },
 
   // contacts
