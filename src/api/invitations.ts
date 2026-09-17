@@ -9,10 +9,6 @@ function toRow(i: Invitation) {
   return row
 }
 
-export function newInvitationToken(): string {
-  return crypto.randomUUID().replace(/-/g, '')
-}
-
 export function inviteUrl(token: string): string {
   return `${window.location.origin}/invite/${token}`
 }
@@ -69,14 +65,6 @@ export async function setInvitationStatus(id: string, status: InvitationStatus):
 export async function deleteInvitation(id: string): Promise<void> {
   if (DEMO) return demo.deleteInvitation(id)
   const { error } = await supabase.from(TABLE).delete().eq('id', id)
-  if (error) throw error
-}
-
-/** Partial update (e.g. set expires_at when sending a 24h update request). */
-export async function patchInvitation(id: string, patch: Partial<Invitation>): Promise<void> {
-  if (DEMO) return
-  const { user_id: _o, ...rest } = patch
-  const { error } = await supabase.from(TABLE).update(rest).eq('id', id)
   if (error) throw error
 }
 

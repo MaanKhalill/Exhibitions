@@ -18,7 +18,6 @@ import { FairSuppliers } from './routes/FairSuppliers'
 import { AddToFair } from './routes/AddToFair'
 import { FairSupplierDetail } from './routes/FairSupplierDetail'
 import { More } from './routes/More'
-import { Placeholder } from './routes/Placeholder'
 import { InvitationsList } from './routes/InvitationsList'
 import { InvitationForm } from './routes/InvitationForm'
 import { InvitationDetail } from './routes/InvitationDetail'
@@ -108,10 +107,6 @@ function AdminApp() {
           <Route path="contacts" element={<Contacts />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="profile" element={<ProfilePage />} />
-          <Route
-            path="factories"
-            element={<Placeholder title="Factories" phase="Phase 5" points={['Factory locations with verification status', 'Map & dynamic city clustering', 'Nearest airport / high-speed rail and transfer times']} />}
-          />
           <Route path="follow-ups" element={<FollowUps />} />
           <Route path="planner" element={<Planner />} />
           <Route path="today" element={<TodayRoute />} />
