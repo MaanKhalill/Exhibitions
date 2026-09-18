@@ -17,6 +17,8 @@ import {
   modeLabel,
   multiFactoryMapUrl,
   parseLatLng,
+  tripSummary,
+  CANTON_FAIR_ORIGIN,
 } from '../lib/factoryPlan'
 import {
   PRIORITY_LABELS,
@@ -98,6 +100,8 @@ export function FactoryPlanner() {
   const pinned = selectedCands.filter((c) => c.factory?.lat != null && c.factory?.lng != null)
   const exactCount = pinned.filter((c) => c.factory?.verified === 'verified').length
   const approxCount = pinned.length - exactCount
+  const originName = [current.venue, current.city].filter(Boolean).join(', ') || 'Canton Fair, Guangzhou'
+  const brief = tripSummary(originName, CANTON_FAIR_ORIGIN, selectedCands)
 
   const dayMover = (cand: FactoryCandidate) => (
     <select
@@ -164,6 +168,8 @@ export function FactoryPlanner() {
               </p>
             )}
           </div>
+
+          {brief && <TripBrief text={brief} />}
 
           {view === 'cities' ? (
             clusterByCity(candidates).map((cl) => (
@@ -265,6 +271,32 @@ function CandidateRow({
         <a className="btn" href={mapsSearchUrl(cand)} target="_blank" rel="noreferrer">🗺 Map</a>
         <button className="btn primary" onClick={onEdit}>Edit</button>
       </div>
+    </div>
+  )
+}
+
+function TripBrief({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      /* clipboard may be blocked; the text is shown for manual copy */
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+  return (
+    <div className="detail-section">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <h3 style={{ margin: 0, flex: 1 }}>📝 Trip summary (for tickets)</h3>
+        <button className="btn" onClick={copy}>{copied ? 'Copied ✓' : 'Copy'}</button>
+      </div>
+      <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{text}</p>
+      <p className="hint" style={{ marginBottom: 0 }}>
+        Order is nearest-first from the fair. Distances are straight-line (real travel is longer) and
+        times are rough — confirm exact train/flight schedules at the stations and airports named above.
+      </p>
     </div>
   )
 }

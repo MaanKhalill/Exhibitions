@@ -134,15 +134,15 @@ function placeholder(label: string, color: string): string {
 const factories: Factory[] = [
   draftFactory(suppliers[1].id, {
     city: 'Shenzhen', province: 'Guangdong', address: 'Baoan District, Shenzhen',
-    verified: 'verified', visit_possible: 'yes',
-    nearest_rail: 'Shenzhen North', nearest_airport: 'Shenzhen Baoan (SZX)',
+    lat: 22.62, lng: 113.81, verified: 'verified', visit_possible: 'yes',
+    nearest_rail: 'Shenzhen North (HSR)', nearest_airport: 'Shenzhen Baoan (SZX)',
     door_rail_min: 40, door_car_min: 120, plan_day: '2026-10-20',
     contact_name: 'Lucy Chen', priority: 'worth',
   }),
   draftFactory(suppliers[2].id, {
     city: 'Foshan', province: 'Guangdong', address: 'Longjiang, Shunde District, Foshan',
-    verified: 'verified', visit_possible: 'yes',
-    nearest_rail: 'Foshan West', nearest_airport: 'Guangzhou Baiyun (CAN)',
+    lat: 22.84, lng: 113.24, verified: 'needs', visit_possible: 'yes',
+    nearest_rail: 'Foshan West (HSR)', nearest_airport: 'Guangzhou Baiyun (CAN)',
     door_rail_min: 60, door_car_min: 90, plan_day: '2026-10-21',
     priority: 'worth',
   }),

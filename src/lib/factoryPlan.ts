@@ -150,6 +150,102 @@ function exhibitionOrigin(ex: Exhibition | null): string {
   return [ex?.venue, ex?.city, ex?.country].filter(Boolean).join(', ') || 'Canton Fair Complex, Guangzhou, China'
 }
 
+export interface LatLng { lat: number; lng: number }
+
+/** Canton Fair Complex (Pazhou, Guangzhou) — default trip start. */
+export const CANTON_FAIR_ORIGIN: LatLng = { lat: 23.0975, lng: 113.334 }
+
+/** Great-circle distance in km between two points. */
+export function haversineKm(a: LatLng, b: LatLng): number {
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(s)))
+}
+
+function factoryLatLng(c: FactoryCandidate): LatLng | null {
+  const f = c.factory
+  return f && f.lat != null && f.lng != null ? { lat: f.lat, lng: f.lng } : null
+}
+
+/** Order candidates nearest-first from the origin (only those with coordinates). */
+export function orderByNearest(origin: LatLng, cands: FactoryCandidate[]): {
+  ordered: FactoryCandidate[]
+  unlocated: FactoryCandidate[]
+} {
+  const remaining = cands.filter((c) => factoryLatLng(c))
+  const unlocated = cands.filter((c) => !factoryLatLng(c))
+  const ordered: FactoryCandidate[] = []
+  let cur = origin
+  while (remaining.length) {
+    let bi = 0
+    let bd = Infinity
+    remaining.forEach((c, i) => {
+      const d = haversineKm(cur, factoryLatLng(c)!)
+      if (d < bd) { bd = d; bi = i }
+    })
+    const next = remaining.splice(bi, 1)[0]
+    ordered.push(next)
+    cur = factoryLatLng(next)!
+  }
+  return { ordered, unlocated }
+}
+
+function kmLabel(km: number): string {
+  return km >= 100 ? `${Math.round(km / 10) * 10} km` : `${Math.round(km)} km`
+}
+function hoursLabel(h: number): string {
+  const t = Math.round(h * 60)
+  const hh = Math.floor(t / 60)
+  const mm = t % 60
+  return hh > 0 ? `~${hh}h${mm ? mm : ''}` : `~${mm}m`
+}
+
+/**
+ * A short text brief for the post-fair factory trip, built from coordinates:
+ * nearest-first order from the fair, straight-line leg distances, and each
+ * factory's nearest station/airport with rough by-air / by-train times to help
+ * look up tickets. Distances are straight-line and times are approximate.
+ */
+export function tripSummary(originName: string, origin: LatLng, cands: FactoryCandidate[]): string {
+  const { ordered, unlocated } = orderByNearest(origin, cands)
+  if (ordered.length === 0) return ''
+  const parts: string[] = []
+  let prev = origin
+  let prevName = originName
+  let total = 0
+  ordered.forEach((c, i) => {
+    const p = factoryLatLng(c)!
+    const km = haversineKm(prev, p)
+    total += km
+    const f = c.factory
+    const seg: string[] = []
+    seg.push(`${i === 0 ? 'first' : 'then ~' + kmLabel(km) + ' on to'} ${c.supplier.company_name} in ${cityOf(c)}`)
+    if (i === 0) seg[0] += ` (~${kmLabel(km)} from the fair`
+    else seg[0] += ' ('
+    const info: string[] = []
+    if (f?.nearest_rail) info.push(`train ${f.nearest_rail}`)
+    if (f?.nearest_airport) info.push(`airport ${f.nearest_airport}`)
+    // Flying only makes sense over longer legs; short hops go by train/road.
+    info.push(
+      km >= 250
+        ? `by air ${hoursLabel(km / 650 + 2.3)} / by train ${hoursLabel((km * 1.35) / 230 + 0.8)}`
+        : `by train ${hoursLabel((km * 1.35) / 230 + 0.6)} / by road ${hoursLabel((km * 1.4) / 70 + 0.3)}`,
+    )
+    seg[0] += (i === 0 ? '; ' : '') + info.join('; ') + ')'
+    parts.push(seg[0])
+    prev = p
+    prevName = cityOf(c)
+  })
+  void prevName
+  let out = `Post-fair factory run from ${originName}, nearest first: ` + parts.join(', ') + '. '
+  out += `Total ≈ ${kmLabel(total)} straight-line (real road/rail is longer), plus the return to Guangzhou for your flight home. `
+  out += `Distances are straight-line and times are rough — use the stations and airports above to check exact train and flight schedules.`
+  if (unlocated.length) out += ` Not yet pinned (add coordinates to include): ${unlocated.map((c) => c.supplier.company_name).join(', ')}.`
+  return out
+}
+
 export interface MultiMapPlan {
   url: string
   count: number
