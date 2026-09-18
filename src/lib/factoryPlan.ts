@@ -211,39 +211,49 @@ function hoursLabel(h: number): string {
 export function tripSummary(originName: string, origin: LatLng, cands: FactoryCandidate[]): string {
   const { ordered, unlocated } = orderByNearest(origin, cands)
   if (ordered.length === 0) return ''
-  const parts: string[] = []
+
+  // Rough door-to-door hours by mode; flying only pays off on longer legs.
+  const airH = (km: number) => km / 650 + 2.3
+  const trainH = (km: number) => (km * 1.35) / 230 + 0.8
+  const roadH = (km: number) => (km * 1.4) / 70 + 0.3
+  const legLine = (km: number) =>
+    km >= 250
+      ? `~${kmLabel(km)} · ${hoursLabel(airH(km))} by air / ${hoursLabel(trainH(km))} by train`
+      : `~${kmLabel(km)} · ${hoursLabel(trainH(km))} by train / ${hoursLabel(roadH(km))} by road`
+  const fastestH = (km: number) => (km >= 250 ? Math.min(airH(km), trainH(km)) : Math.min(trainH(km), roadH(km)))
+
+  // Sections separated by a blank line; stops lettered A, B, C… like Google Maps
+  // (A = the fair, then each factory in visit order).
+  const sections: string[] = [`A. ${originName} — start`]
   let prev = origin
   let total = 0
-  // Rough door-to-door times: flying only pays off on longer legs.
-  const legTime = (km: number) =>
-    km >= 250
-      ? `by air ${hoursLabel(km / 650 + 2.3)} / by train ${hoursLabel((km * 1.35) / 230 + 0.8)}`
-      : `by train ${hoursLabel((km * 1.35) / 230 + 0.6)} / by road ${hoursLabel((km * 1.4) / 70 + 0.3)}`
+  let totalH = 0
   ordered.forEach((c, i) => {
     const p = factoryLatLng(c)!
     const km = haversineKm(prev, p)
     total += km
+    totalH += fastestH(km)
+    const letter = String.fromCharCode(66 + i) // B, C, D…
     const f = c.factory
-    const info: string[] = []
-    if (f?.nearest_rail) info.push(`train ${f.nearest_rail}`)
-    if (f?.nearest_airport) info.push(`airport ${f.nearest_airport}`)
-    info.push(legTime(km))
-    const head =
-      i === 0
-        ? `first ${c.supplier.company_name} in ${cityOf(c)} (~${kmLabel(km)} from the fair; `
-        : `then ~${kmLabel(km)} on to ${c.supplier.company_name} in ${cityOf(c)} (`
-    parts.push(head + info.join('; ') + ')')
+    const lines = [`${letter}. ${c.supplier.company_name} — ${cityOf(c)}`, `    ${legLine(km)}`]
+    const hub: string[] = []
+    if (f?.nearest_rail) hub.push(`Train ${f.nearest_rail}`)
+    if (f?.nearest_airport) hub.push(`Airport ${f.nearest_airport}`)
+    if (hub.length) lines.push(`    ${hub.join(' · ')}`)
+    sections.push(lines.join('\n'))
     prev = p
   })
+
   // Return leg back to Guangzhou for the departure flight.
   const returnKm = haversineKm(prev, origin)
   total += returnKm
-  parts.push(`then back to Guangzhou (Baiyun Intl, CAN) for your departure (~${kmLabel(returnKm)}; ${legTime(returnKm)})`)
+  totalH += fastestH(returnKm)
+  sections.push(`↩ Back to Guangzhou (Baiyun Intl, CAN) — departure\n    ${legLine(returnKm)}`)
 
-  let out = `Post-fair factory run from ${originName}, nearest first: ` + parts.join(', ') + '. '
-  out += `Round-trip total ≈ ${kmLabel(total)} straight-line (real road/rail is longer). `
-  out += `Distances are straight-line and times are rough — use the stations and airports above to check exact train and flight schedules.`
-  if (unlocated.length) out += ` Not yet pinned (add coordinates to include): ${unlocated.map((c) => c.supplier.company_name).join(', ')}.`
+  let out = `Nearest-first factory route from ${originName}:\n\n` + sections.join('\n\n')
+  out += `\n\nRound-trip ≈ ${kmLabel(total)} straight-line · ${hoursLabel(totalH)} total travel (excludes time spent at each factory).`
+  out += `\nDistances are straight-line (real road/rail is longer) and times are rough — confirm exact train/flight schedules at the stations and airports above.`
+  if (unlocated.length) out += `\n\nNot yet pinned (add coordinates to include): ${unlocated.map((c) => c.supplier.company_name).join(', ')}.`
   return out
 }
 
