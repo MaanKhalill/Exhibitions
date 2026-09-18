@@ -16,6 +16,7 @@ import {
   mapsSearchUrl,
   modeLabel,
   multiFactoryMapUrl,
+  parseLatLng,
 } from '../lib/factoryPlan'
 import {
   PRIORITY_LABELS,
@@ -94,6 +95,7 @@ export function FactoryPlanner() {
     .slice()
     .sort((a, b) => (a.factory?.plan_day || 'zzzz').localeCompare(b.factory?.plan_day || 'zzzz'))
   const mapPlan = multiFactoryMapUrl(current, selectedCands)
+  const exactCount = selectedCands.filter((c) => c.factory?.lat != null && c.factory?.lng != null).length
 
   const dayMover = (cand: FactoryCandidate) => (
     <select
@@ -140,9 +142,15 @@ export function FactoryPlanner() {
               fastest run after the show. Untick any factory to leave it off the map.
             </p>
             {mapPlan.count > 0 ? (
-              <a className="btn primary block" href={mapPlan.url} target="_blank" rel="noreferrer">
-                🗺 Open {mapPlan.count} factor{mapPlan.count === 1 ? 'y' : 'ies'} on one map (from Canton Fair)
-              </a>
+              <>
+                <a className="btn primary block" href={mapPlan.url} target="_blank" rel="noreferrer">
+                  🗺 Open {mapPlan.count} factor{mapPlan.count === 1 ? 'y' : 'ies'} on one map (from Canton Fair)
+                </a>
+                <p className="hint" style={{ marginBottom: 0 }}>
+                  📍 {exactCount} of {mapPlan.count} pin{mapPlan.count === 1 ? '' : 's'} exact (from coordinates);
+                  {exactCount < mapPlan.count ? ' the rest use the address — open a factory and paste its exact point to pin it precisely.' : ' all pinned precisely.'}
+                </p>
+              </>
             ) : (
               <p className="hint" style={{ marginBottom: 0 }}>
                 Tick at least one factory that has an address to build the map.
@@ -236,6 +244,9 @@ function CandidateRow({
       </div>
       <div className="card-meta">
         <span>📍 {cityOf(cand)}</span>
+        {f?.lat != null && f?.lng != null
+          ? <span className="badge status-ordered">📍 exact pin</span>
+          : <span className="badge status-quote">address only</span>}
         {f?.visit_possible && f.visit_possible !== 'tbc' && <span>{VISIT_POSSIBLE_LABELS[f.visit_possible]}</span>}
         {best && <span>🚄 {modeLabel(best.mode)} {fmtHours(best.min)}</span>}
         {f?.nearest_rail && <span>🚉 {f.nearest_rail}</span>}
@@ -283,6 +294,16 @@ function FactoryEditor({
   const set = <K extends keyof Factory>(k: K, v: Factory[K]) => setF((p) => ({ ...p, [k]: v }))
   const save = useMutation({ mutationFn: () => saveFactory(f), onSuccess: onSaved })
   const best = bestTransport(f)
+  const [coordPaste, setCoordPaste] = useState('')
+  const [coordErr, setCoordErr] = useState(false)
+  const applyCoords = () => {
+    const c = parseLatLng(coordPaste)
+    if (c) {
+      setF((p) => ({ ...p, lat: c.lat, lng: c.lng }))
+      setCoordPaste('')
+      setCoordErr(false)
+    } else setCoordErr(true)
+  }
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -301,6 +322,25 @@ function FactoryEditor({
           loading="lazy"
           style={{ width: '100%', height: 180, border: 0, borderRadius: 12, marginBottom: 12 }}
         />
+
+        <div className="field">
+          <label>Exact location <span style={{ color: 'var(--muted)', fontWeight: 400 }}>— paste coordinates or a Google Maps link</span></label>
+          <div className="actions">
+            <input
+              style={{ flex: 1 }}
+              value={coordPaste}
+              onChange={(e) => { setCoordPaste(e.target.value); setCoordErr(false) }}
+              placeholder="e.g. 30.2419, 120.2096  or a maps link"
+            />
+            <button className="btn" type="button" onClick={applyCoords}>Set pin</button>
+          </div>
+          <p className="hint" style={{ marginBottom: 4 }}>
+            In Google Maps, right‑click the exact spot → <b>Copy coordinates</b>, then paste here. Or{' '}
+            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.address || cand.supplier.company_name)}`} target="_blank" rel="noreferrer">open this address in Maps</a> to find it.
+          </p>
+          {coordErr && <p className="error" style={{ marginTop: 0 }}>Couldn't read coordinates — paste like “30.2419, 120.2096” or a Google Maps link.</p>}
+          {f.lat != null && f.lng != null && <p className="hint" style={{ margin: 0 }}>✓ Exact pin: {f.lat}, {f.lng}</p>}
+        </div>
 
         <div className="row2">
           <Field label="Latitude"><input inputMode="decimal" value={f.lat ?? ''} onChange={(e) => set('lat', numOrNull(e.target.value))} /></Field>

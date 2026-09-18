@@ -110,6 +110,32 @@ export function mapsEmbedUrl(cand: FactoryCandidate): string {
   return `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`
 }
 
+/**
+ * Extract exact coordinates from a pasted string: either "lat, lng"
+ * (what Google Maps' right-click → "Copy coordinates" gives) or a Google Maps
+ * URL (…@lat,lng… , …!3dlat!4dlng… , or ?q=/query=/ll=lat,lng). Returns null if
+ * no valid pair is found (lat ∈ [-90,90], lng ∈ [-180,180]).
+ */
+export function parseLatLng(input: string): { lat: number; lng: number } | null {
+  const s = (input || '').trim()
+  if (!s) return null
+  const ok = (lat: number, lng: number) =>
+    !isNaN(lat) && !isNaN(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : null
+  // Plain "lat, lng" or "lat lng"
+  const pair = s.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[, ]\s*(-?\d{1,3}(?:\.\d+)?)$/)
+  if (pair) return ok(parseFloat(pair[1]), parseFloat(pair[2]))
+  // Google Maps URL: the place pin (!3d…!4d…) is the most exact
+  const dd = s.match(/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/)
+  if (dd) return ok(parseFloat(dd[1]), parseFloat(dd[2]))
+  // …@lat,lng (map centre)
+  const at = s.match(/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/)
+  if (at) return ok(parseFloat(at[1]), parseFloat(at[2]))
+  // ?q= / query= / ll= / destination= lat,lng
+  const q = s.match(/[?&](?:q|query|ll|destination)=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/)
+  if (q) return ok(parseFloat(q[1]), parseFloat(q[2]))
+  return null
+}
+
 /** A single map query for a candidate: prefers coordinates, else "Company, address/city". */
 function candMapQuery(c: FactoryCandidate): string | null {
   const f = c.factory
