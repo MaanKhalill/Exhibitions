@@ -9,7 +9,22 @@ import './index.css'
 
 // The preview build is a single self-contained page (hash routing, no service
 // worker); the real app uses history routing and installs as a PWA.
-if (!DEMO) registerSW({ immediate: true })
+// When a new version deploys, activate it and reload once so users always see
+// the latest without manually clearing the offline cache.
+if (!DEMO) {
+  registerSW({ immediate: true })
+  if ('serviceWorker' in navigator) {
+    // Only reload when an existing version is replaced by a new one — not on the
+    // very first install (when there was no controller yet).
+    const hadController = Boolean(navigator.serviceWorker.controller)
+    let reloading = false
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading || !hadController) return
+      reloading = true
+      window.location.reload()
+    })
+  }
+}
 const Router = DEMO ? HashRouter : BrowserRouter
 
 const queryClient = new QueryClient({
