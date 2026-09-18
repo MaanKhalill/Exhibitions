@@ -95,7 +95,9 @@ export function FactoryPlanner() {
     .slice()
     .sort((a, b) => (a.factory?.plan_day || 'zzzz').localeCompare(b.factory?.plan_day || 'zzzz'))
   const mapPlan = multiFactoryMapUrl(current, selectedCands)
-  const exactCount = selectedCands.filter((c) => c.factory?.lat != null && c.factory?.lng != null).length
+  const pinned = selectedCands.filter((c) => c.factory?.lat != null && c.factory?.lng != null)
+  const exactCount = pinned.filter((c) => c.factory?.verified === 'verified').length
+  const approxCount = pinned.length - exactCount
 
   const dayMover = (cand: FactoryCandidate) => (
     <select
@@ -147,8 +149,8 @@ export function FactoryPlanner() {
                   🗺 Open {mapPlan.count} factor{mapPlan.count === 1 ? 'y' : 'ies'} on one map (from Canton Fair)
                 </a>
                 <p className="hint" style={{ marginBottom: 0 }}>
-                  📍 {exactCount} of {mapPlan.count} pin{mapPlan.count === 1 ? '' : 's'} exact (from coordinates);
-                  {exactCount < mapPlan.count ? ' the rest use the address — open a factory and paste its exact point to pin it precisely.' : ' all pinned precisely.'}
+                  📍 {exactCount} exact · {approxCount} approx · {mapPlan.count - pinned.length} by address.
+                  {exactCount < mapPlan.count ? ' Open a factory and paste its exact point (right‑click in Maps → Copy coordinates) to pin it precisely.' : ' All pinned precisely.'}
                 </p>
               </>
             ) : (
@@ -245,7 +247,9 @@ function CandidateRow({
       <div className="card-meta">
         <span>📍 {cityOf(cand)}</span>
         {f?.lat != null && f?.lng != null
-          ? <span className="badge status-ordered">📍 exact pin</span>
+          ? (f.verified === 'verified'
+              ? <span className="badge status-ordered">📍 exact pin</span>
+              : <span className="badge status-quote">📍 approx pin</span>)
           : <span className="badge status-quote">address only</span>}
         {f?.visit_possible && f.visit_possible !== 'tbc' && <span>{VISIT_POSSIBLE_LABELS[f.visit_possible]}</span>}
         {best && <span>🚄 {modeLabel(best.mode)} {fmtHours(best.min)}</span>}
@@ -299,7 +303,8 @@ function FactoryEditor({
   const applyCoords = () => {
     const c = parseLatLng(coordPaste)
     if (c) {
-      setF((p) => ({ ...p, lat: c.lat, lng: c.lng }))
+      // A pasted exact point also confirms the location.
+      setF((p) => ({ ...p, lat: c.lat, lng: c.lng, verified: 'verified' }))
       setCoordPaste('')
       setCoordErr(false)
     } else setCoordErr(true)
