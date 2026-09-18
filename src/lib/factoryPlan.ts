@@ -199,7 +199,7 @@ function hoursLabel(h: number): string {
   const t = Math.round(h * 60)
   const hh = Math.floor(t / 60)
   const mm = t % 60
-  return hh > 0 ? `~${hh}h${mm ? mm : ''}` : `~${mm}m`
+  return hh > 0 ? `~${hh}h${mm ? String(mm).padStart(2, '0') : ''}` : `~${mm}m`
 }
 
 /**
@@ -213,34 +213,35 @@ export function tripSummary(originName: string, origin: LatLng, cands: FactoryCa
   if (ordered.length === 0) return ''
   const parts: string[] = []
   let prev = origin
-  let prevName = originName
   let total = 0
+  // Rough door-to-door times: flying only pays off on longer legs.
+  const legTime = (km: number) =>
+    km >= 250
+      ? `by air ${hoursLabel(km / 650 + 2.3)} / by train ${hoursLabel((km * 1.35) / 230 + 0.8)}`
+      : `by train ${hoursLabel((km * 1.35) / 230 + 0.6)} / by road ${hoursLabel((km * 1.4) / 70 + 0.3)}`
   ordered.forEach((c, i) => {
     const p = factoryLatLng(c)!
     const km = haversineKm(prev, p)
     total += km
     const f = c.factory
-    const seg: string[] = []
-    seg.push(`${i === 0 ? 'first' : 'then ~' + kmLabel(km) + ' on to'} ${c.supplier.company_name} in ${cityOf(c)}`)
-    if (i === 0) seg[0] += ` (~${kmLabel(km)} from the fair`
-    else seg[0] += ' ('
     const info: string[] = []
     if (f?.nearest_rail) info.push(`train ${f.nearest_rail}`)
     if (f?.nearest_airport) info.push(`airport ${f.nearest_airport}`)
-    // Flying only makes sense over longer legs; short hops go by train/road.
-    info.push(
-      km >= 250
-        ? `by air ${hoursLabel(km / 650 + 2.3)} / by train ${hoursLabel((km * 1.35) / 230 + 0.8)}`
-        : `by train ${hoursLabel((km * 1.35) / 230 + 0.6)} / by road ${hoursLabel((km * 1.4) / 70 + 0.3)}`,
-    )
-    seg[0] += (i === 0 ? '; ' : '') + info.join('; ') + ')'
-    parts.push(seg[0])
+    info.push(legTime(km))
+    const head =
+      i === 0
+        ? `first ${c.supplier.company_name} in ${cityOf(c)} (~${kmLabel(km)} from the fair; `
+        : `then ~${kmLabel(km)} on to ${c.supplier.company_name} in ${cityOf(c)} (`
+    parts.push(head + info.join('; ') + ')')
     prev = p
-    prevName = cityOf(c)
   })
-  void prevName
+  // Return leg back to Guangzhou for the departure flight.
+  const returnKm = haversineKm(prev, origin)
+  total += returnKm
+  parts.push(`then back to Guangzhou (Baiyun Intl, CAN) for your departure (~${kmLabel(returnKm)}; ${legTime(returnKm)})`)
+
   let out = `Post-fair factory run from ${originName}, nearest first: ` + parts.join(', ') + '. '
-  out += `Total ≈ ${kmLabel(total)} straight-line (real road/rail is longer), plus the return to Guangzhou for your flight home. `
+  out += `Round-trip total ≈ ${kmLabel(total)} straight-line (real road/rail is longer). `
   out += `Distances are straight-line and times are rough — use the stations and airports above to check exact train and flight schedules.`
   if (unlocated.length) out += ` Not yet pinned (add coordinates to include): ${unlocated.map((c) => c.supplier.company_name).join(', ')}.`
   return out
