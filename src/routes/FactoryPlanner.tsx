@@ -15,6 +15,7 @@ import {
   mapsEmbedUrl,
   mapsSearchUrl,
   modeLabel,
+  multiFactoryMapUrl,
 } from '../lib/factoryPlan'
 import {
   PRIORITY_LABELS,
@@ -32,6 +33,14 @@ export function FactoryPlanner() {
   const [view, setView] = useState<'cities' | 'days'>('cities')
   const [dayTab, setDayTab] = useState<string>('')
   const [editing, setEditing] = useState<FactoryCandidate | null>(null)
+  // Factories excluded from the combined map (everything is included by default).
+  const [excluded, setExcluded] = useState<Set<string>>(new Set())
+  const toggleOnMap = (id: string) =>
+    setExcluded((s) => {
+      const n = new Set(s)
+      n.has(id) ? n.delete(id) : n.add(id)
+      return n
+    })
 
   const { data: parts = [], isLoading: lp } = useQuery({
     queryKey: ['participations', current?.id],
@@ -78,6 +87,14 @@ export function FactoryPlanner() {
 
   const risky = candidates.filter((c) => candidateRisks(c, lastDay).length > 0)
 
+  // Combined "one map from Canton Fair" route through the selected factories,
+  // ordered by their planned day (scheduled first), then the rest.
+  const selectedCands = candidates
+    .filter((c) => !excluded.has(c.supplier.id))
+    .slice()
+    .sort((a, b) => (a.factory?.plan_day || 'zzzz').localeCompare(b.factory?.plan_day || 'zzzz'))
+  const mapPlan = multiFactoryMapUrl(current, selectedCands)
+
   const dayMover = (cand: FactoryCandidate) => (
     <select
       value={days.includes(cand.factory?.plan_day || '') ? (cand.factory!.plan_day as string) : ''}
@@ -115,6 +132,29 @@ export function FactoryPlanner() {
             </div>
           )}
 
+          <div className="detail-section">
+            <h3>🗺 Whole factory trip on one map</h3>
+            <p className="hint" style={{ marginTop: 0 }}>
+              Opens one Google Map that starts at the <b>Canton Fair complex</b> and drops a labelled stop
+              for every factory ticked below — Google draws the driving route and times so you can plan the
+              fastest run after the show. Untick any factory to leave it off the map.
+            </p>
+            {mapPlan.count > 0 ? (
+              <a className="btn primary block" href={mapPlan.url} target="_blank" rel="noreferrer">
+                🗺 Open {mapPlan.count} factor{mapPlan.count === 1 ? 'y' : 'ies'} on one map (from Canton Fair)
+              </a>
+            ) : (
+              <p className="hint" style={{ marginBottom: 0 }}>
+                Tick at least one factory that has an address to build the map.
+              </p>
+            )}
+            {mapPlan.skipped.length > 0 && (
+              <p className="hint" style={{ marginBottom: 0, color: 'var(--red)' }}>
+                No location yet — add an address to include: {mapPlan.skipped.join(', ')}
+              </p>
+            )}
+          </div>
+
           {view === 'cities' ? (
             clusterByCity(candidates).map((cl) => (
               <div key={cl.city} className="detail-section" style={{ padding: 12 }}>
@@ -123,7 +163,7 @@ export function FactoryPlanner() {
                   {cl.prd && <span className="badge status-ordered">near Guangzhou</span>}
                 </div>
                 {cl.items.map((c) => (
-                  <CandidateRow key={c.supplier.id} cand={c} lastDay={lastDay} onEdit={() => setEditing(c)} dayMover={dayMover} />
+                  <CandidateRow key={c.supplier.id} cand={c} lastDay={lastDay} onEdit={() => setEditing(c)} dayMover={dayMover} onMap={!excluded.has(c.supplier.id)} onToggleMap={() => toggleOnMap(c.supplier.id)} />
                 ))}
               </div>
             ))
@@ -146,7 +186,7 @@ export function FactoryPlanner() {
                 ? candidates.filter((c) => !c.factory?.plan_day || !days.includes(c.factory.plan_day))
                 : candidates.filter((c) => c.factory?.plan_day === activeDay)
               ).map((c) => (
-                <CandidateRow key={c.supplier.id} cand={c} lastDay={lastDay} onEdit={() => setEditing(c)} dayMover={dayMover} />
+                <CandidateRow key={c.supplier.id} cand={c} lastDay={lastDay} onEdit={() => setEditing(c)} dayMover={dayMover} onMap={!excluded.has(c.supplier.id)} onToggleMap={() => toggleOnMap(c.supplier.id)} />
               ))}
             </>
           )}
@@ -173,11 +213,15 @@ function CandidateRow({
   lastDay,
   onEdit,
   dayMover,
+  onMap,
+  onToggleMap,
 }: {
   cand: FactoryCandidate
   lastDay: string | null
   onEdit: () => void
   dayMover: (c: FactoryCandidate) => React.ReactNode
+  onMap: boolean
+  onToggleMap: () => void
 }) {
   const f = cand.factory
   const best = bestTransport(f)
@@ -197,6 +241,10 @@ function CandidateRow({
         {f?.nearest_rail && <span>🚉 {f.nearest_rail}</span>}
       </div>
       {risks.length > 0 && <div className="hint" style={{ color: 'var(--red)' }}>⚠️ {risks.join(' · ')}</div>}
+      <label className="checkrow" style={{ marginTop: 8 }}>
+        <input type="checkbox" checked={onMap} onChange={onToggleMap} />
+        <span>Include on the combined map</span>
+      </label>
       <div className="actions" style={{ marginTop: 8 }}>
         <div style={{ flex: 1 }}>{dayMover(cand)}</div>
         <a className="btn" href={mapsSearchUrl(cand)} target="_blank" rel="noreferrer">🗺 Map</a>

@@ -109,3 +109,47 @@ export function mapsEmbedUrl(cand: FactoryCandidate): string {
   const q = f?.lat != null && f?.lng != null ? `${f.lat},${f.lng}` : f?.address || `${cityOf(cand)} ${cand.supplier.company_name}`
   return `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`
 }
+
+/** A single map query for a candidate: prefers coordinates, else "Company, address/city". */
+function candMapQuery(c: FactoryCandidate): string | null {
+  const f = c.factory
+  if (f?.lat != null && f?.lng != null) return `${f.lat},${f.lng}`
+  const place = (f?.address || [cityOf(c) !== 'Unassigned' ? cityOf(c) : '', c.supplier.address].filter(Boolean).join(' ')).trim()
+  if (!place) return null
+  return `${c.supplier.company_name}, ${place}`
+}
+
+/** The exhibition venue as a map origin (falls back to the Canton Fair complex). */
+function exhibitionOrigin(ex: Exhibition | null): string {
+  return [ex?.venue, ex?.city, ex?.country].filter(Boolean).join(', ') || 'Canton Fair Complex, Guangzhou, China'
+}
+
+export interface MultiMapPlan {
+  url: string
+  count: number
+  skipped: string[]
+}
+
+/**
+ * One keyless Google Maps directions link that starts at the exhibition venue
+ * and passes through every given factory as a stop, so all locations appear on
+ * one map with the driving route and times (best/fastest planning after the fair).
+ * Each stop is queried as "Company name, address" so the company name is visible.
+ * Google's universal directions URL takes origin + destination + up to ~9 waypoints.
+ */
+export function multiFactoryMapUrl(ex: Exhibition | null, cands: FactoryCandidate[]): MultiMapPlan {
+  const stops: string[] = []
+  const skipped: string[] = []
+  for (const c of cands) {
+    const q = candMapQuery(c)
+    if (q) stops.push(q)
+    else skipped.push(c.supplier.company_name)
+  }
+  if (stops.length === 0) return { url: '', count: 0, skipped }
+  const origin = encodeURIComponent(exhibitionOrigin(ex))
+  const destination = encodeURIComponent(stops[stops.length - 1])
+  const waypoints = stops.slice(0, -1).map(encodeURIComponent).join('|')
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`
+  if (waypoints) url += `&waypoints=${waypoints}`
+  return { url, count: stops.length, skipped }
+}
