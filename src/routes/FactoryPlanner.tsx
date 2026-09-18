@@ -102,6 +102,11 @@ export function FactoryPlanner() {
   const approxCount = pinned.length - exactCount
   const originName = [current.venue, current.city].filter(Boolean).join(', ') || 'Canton Fair, Guangzhou'
   const brief = tripSummary(originName, CANTON_FAIR_ORIGIN, selectedCands)
+  const exName = `${current.name}${current.edition ? ' ' + current.edition : ''}`
+  const planDoc = brief
+    ? `Factory visit plan — ${exName}\nGenerated ${new Date().toLocaleDateString()}\n\n${brief}` +
+      (mapPlan.url ? `\n\nMap (all stops from Canton Fair):\n${mapPlan.url}` : '')
+    : ''
 
   const dayMover = (cand: FactoryCandidate) => (
     <select
@@ -169,7 +174,7 @@ export function FactoryPlanner() {
             )}
           </div>
 
-          {brief && <TripBrief text={brief} />}
+          {brief && <TripBrief brief={brief} doc={planDoc} />}
 
           {view === 'cities' ? (
             clusterByCity(candidates).map((cl) => (
@@ -275,28 +280,82 @@ function CandidateRow({
   )
 }
 
-function TripBrief({ text }: { text: string }) {
+function TripBrief({ brief, doc }: { brief: string; doc: string }) {
   const [copied, setCopied] = useState(false)
+  const [open, setOpen] = useState(false)
+  const canShare = typeof navigator !== 'undefined' && typeof (navigator as Navigator & { share?: unknown }).share === 'function'
+
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(text)
+      await navigator.clipboard.writeText(doc)
     } catch {
       /* clipboard may be blocked; the text is shown for manual copy */
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
+  const share = async () => {
+    try {
+      await (navigator as Navigator & { share: (d: { title?: string; text?: string }) => Promise<void> })
+        .share({ title: 'Factory trip plan', text: doc })
+    } catch {
+      /* user cancelled or unsupported */
+    }
+  }
+  const save = () => {
+    try {
+      const blob = new Blob([doc], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'factory-trip-plan.txt'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      /* download may be blocked in some embedded contexts */
+    }
+  }
+
+  const buttons = (
+    <div className="actions" style={{ marginTop: 10, flexWrap: 'wrap' }}>
+      <button className="btn" onClick={copy}>{copied ? 'Copied ✓' : '📋 Copy'}</button>
+      {canShare && <button className="btn" onClick={share}>↗ Share</button>}
+      <button className="btn" onClick={save}>⬇ Save .txt</button>
+    </div>
+  )
+
   return (
     <div className="detail-section">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
         <h3 style={{ margin: 0, flex: 1 }}>📝 Trip summary (for tickets)</h3>
-        <button className="btn" onClick={copy}>{copied ? 'Copied ✓' : 'Copy'}</button>
+        <button className="btn" onClick={() => setOpen(true)}>Open window</button>
       </div>
-      <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{text}</p>
+      <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{brief}</p>
+      {buttons}
       <p className="hint" style={{ marginBottom: 0 }}>
         Order is nearest-first from the fair. Distances are straight-line (real travel is longer) and
         times are rough — confirm exact train/flight schedules at the stations and airports named above.
       </p>
+
+      {open && (
+        <div className="overlay" onClick={() => setOpen(false)}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>Factory trip plan</h3>
+            <textarea
+              readOnly
+              value={doc}
+              onFocus={(e) => e.currentTarget.select()}
+              style={{ width: '100%', height: 300, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 13, lineHeight: 1.5 }}
+            />
+            {buttons}
+            <div className="actions" style={{ marginTop: 10 }}>
+              <button className="btn primary block" onClick={() => setOpen(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
