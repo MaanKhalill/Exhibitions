@@ -1,16 +1,29 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listSuppliers } from '../api/suppliers'
 import { Empty, Page, Spinner } from '../components/ui'
 
+type SortKey = 'name' | 'city'
+
 export function SuppliersList() {
   const navigate = useNavigate()
   const [term, setTerm] = useState('')
+  const [sort, setSort] = useState<SortKey>('name')
   const { data = [], isLoading } = useQuery({
     queryKey: ['suppliers', term],
     queryFn: () => listSuppliers(term),
   })
+
+  const rows = useMemo(() => {
+    const byName = (a: string, b: string) => (a || '￿').localeCompare(b || '￿', undefined, { sensitivity: 'base' })
+    return [...data].sort((a, b) =>
+      sort === 'city'
+        ? byName([a.city, a.country].filter(Boolean).join(', '), [b.city, b.country].filter(Boolean).join(', ')) ||
+          byName(a.company_name, b.company_name)
+        : byName(a.company_name, b.company_name),
+    )
+  }, [data, sort])
 
   return (
     <Page
@@ -29,6 +42,13 @@ export function SuppliersList() {
           onChange={(e) => setTerm(e.target.value)}
         />
       </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 12px' }}>
+        <span className="hint" style={{ margin: 0 }}>Sort by</span>
+        <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} style={{ flex: 1, maxWidth: 240 }}>
+          <option value="name">Company name (A–Z)</option>
+          <option value="city">Location (city)</option>
+        </select>
+      </div>
 
       {isLoading ? (
         <Spinner />
@@ -39,7 +59,7 @@ export function SuppliersList() {
           hint={term ? 'Try a different search.' : 'Suppliers you add at any exhibition appear here permanently.'}
         />
       ) : (
-        data.map((s) => (
+        rows.map((s) => (
           <Link key={s.id} className="card" to={`/suppliers/${s.id}`}>
             <div className="card-head">
               <div className="name">{s.company_name || 'Unnamed supplier'}</div>
