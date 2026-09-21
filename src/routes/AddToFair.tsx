@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { findDuplicates, saveSupplier, type DuplicateMatch } from '../api/suppliers'
 import { saveParticipation } from '../api/participations'
-import { draftParticipation, draftSupplier } from '../lib/defaults'
+import { saveContact } from '../api/contacts'
+import { draftContact, draftParticipation, draftSupplier } from '../lib/defaults'
 import { PRIORITY_LABELS, type Priority, type Supplier } from '../types'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { Field, Page, ErrorNote } from '../components/ui'
@@ -17,9 +18,14 @@ export function AddToFair() {
   // New-supplier fields (used when not linking to an existing one)
   const [company, setCompany] = useState('')
   const [website, setWebsite] = useState('')
-  const [phone, setPhone] = useState('')
-  const [wechat, setWechat] = useState('')
   const [products, setProducts] = useState('')
+
+  // Contact person (their business card) — saved as a contact on the supplier.
+  const [contactName, setContactName] = useState('')
+  const [position, setPosition] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+  const [wechat, setWechat] = useState('')
 
   const [linked, setLinked] = useState<Supplier | null>(null)
   const [matches, setMatches] = useState<DuplicateMatch[] | null>(null)
@@ -71,8 +77,22 @@ export function AddToFair() {
             company_name: company.trim(),
             website,
             phone,
+            email,
             wechat,
             product_summary: products,
+            first_met_exhibition_id: current.id,
+          }),
+        )
+      }
+      // Save the person from their card as a contact on the supplier.
+      if (contactName.trim() || email.trim()) {
+        await saveContact(
+          draftContact(supplier.id, {
+            name: contactName.trim() || supplier.company_name,
+            position: position.trim(),
+            phone,
+            email,
+            wechat,
             first_met_exhibition_id: current.id,
           }),
         )
@@ -82,6 +102,8 @@ export function AddToFair() {
           hall,
           booth: boothRaw,
           booth_raw: boothRaw,
+          booth_contact_name: contactName.trim(),
+          booth_contact_phone: phone,
           products_shown: products,
           priority,
           rating,
@@ -140,19 +162,32 @@ export function AddToFair() {
             </div>
           )}
 
-          <div className="row2">
-            <Field label="Phone">
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </Field>
-            <Field label="WeChat">
-              <input value={wechat} onChange={(e) => setWechat(e.target.value)} />
-            </Field>
-          </div>
           <Field label="Website">
             <input value={website} onChange={(e) => setWebsite(e.target.value)} onBlur={checkDuplicates} />
           </Field>
         </>
       )}
+
+      <h3 className="section-label">Contact person (their card)</h3>
+      <Field label="Contact name">
+        <input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Person you met" />
+      </Field>
+      <div className="row2">
+        <Field label="Position">
+          <input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="e.g. Sales Manager" />
+        </Field>
+        <Field label="Phone">
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} onBlur={checkDuplicates} />
+        </Field>
+      </div>
+      <div className="row2">
+        <Field label="Email">
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </Field>
+        <Field label="WeChat">
+          <input value={wechat} onChange={(e) => setWechat(e.target.value)} onBlur={checkDuplicates} />
+        </Field>
+      </div>
 
       <Field label="Products (free text)">
         <textarea value={products} onChange={(e) => setProducts(e.target.value)} placeholder="What they showed / make" />

@@ -1,4 +1,23 @@
-import type { Exhibition, Factory, Invitation, Participation, Supplier } from '../types'
+import type { Contact, Exhibition, Factory, Invitation, Participation, Supplier } from '../types'
+
+export function draftContact(supplierId: string, partial: Partial<Contact> = {}): Contact {
+  const now = new Date().toISOString()
+  return {
+    id: crypto.randomUUID(),
+    supplier_id: supplierId,
+    name: '',
+    position: '',
+    phone: '',
+    wechat: '',
+    email: '',
+    business_card_path: null,
+    notes: '',
+    first_met_exhibition_id: null,
+    created_at: now,
+    updated_at: now,
+    ...partial,
+  }
+}
 
 export function draftInvitation(exhibitionId: string, partial: Partial<Invitation> = {}): Invitation {
   const now = new Date().toISOString()
