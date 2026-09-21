@@ -28,11 +28,14 @@ function match(p: ParticipationWithSupplier, f: FilterKey): boolean {
   }
 }
 
+type SortKey = 'booth' | 'name'
+
 export function FairSuppliers() {
   const navigate = useNavigate()
   const { current } = useExhibitions()
   const [term, setTerm] = useState('')
   const [filter, setFilter] = useState<FilterKey>('all')
+  const [sort, setSort] = useState<SortKey>('booth')
 
   const { data = [], isLoading } = useQuery({
     queryKey: ['participations', current?.id],
@@ -52,8 +55,14 @@ export function FairSuppliers() {
               .toLowerCase()
               .includes(q),
       )
-      .sort((a, b) => boothSortKey(a).localeCompare(boothSortKey(b)))
-  }, [data, term, filter])
+      .sort((a, b) =>
+        sort === 'name'
+          ? (a.supplier.company_name || '￿').localeCompare(b.supplier.company_name || '￿', undefined, {
+              sensitivity: 'base',
+            })
+          : boothSortKey(a).localeCompare(boothSortKey(b)),
+      )
+  }, [data, term, filter, sort])
 
   if (!current) {
     return (
@@ -82,6 +91,13 @@ export function FairSuppliers() {
             {f.label}
           </button>
         ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 12px' }}>
+        <span className="hint" style={{ margin: 0 }}>Sort by</span>
+        <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} style={{ flex: 1, maxWidth: 240 }}>
+          <option value="booth">Hall &amp; booth number</option>
+          <option value="name">Company name (A–Z)</option>
+        </select>
       </div>
 
       {isLoading ? (
