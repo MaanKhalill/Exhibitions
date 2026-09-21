@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupplier, saveSupplier } from '../api/suppliers'
-import { draftSupplier } from '../lib/defaults'
+import { saveContact } from '../api/contacts'
+import { draftContact, draftSupplier } from '../lib/defaults'
 import type { Supplier } from '../types'
 import { Field, Page, Spinner, ErrorNote } from '../components/ui'
 
@@ -19,12 +20,33 @@ export function SupplierForm() {
 
 function Inner({ initial, isEdit }: { initial: Supplier; isEdit: boolean }) {
   const [s, setS] = useState<Supplier>(initial)
+  // Primary contact person (only captured when creating a new supplier).
+  const [cName, setCName] = useState('')
+  const [cPos, setCPos] = useState('')
+  const [cPhone, setCPhone] = useState('')
+  const [cEmail, setCEmail] = useState('')
+  const [cWechat, setCWechat] = useState('')
   const navigate = useNavigate()
   const qc = useQueryClient()
   const set = <K extends keyof Supplier>(k: K, v: Supplier[K]) => setS((p) => ({ ...p, [k]: v }))
 
   const mutation = useMutation({
-    mutationFn: () => saveSupplier({ ...s, company_name: s.company_name.trim() }),
+    mutationFn: async () => {
+      const saved = await saveSupplier({ ...s, company_name: s.company_name.trim() })
+      if (!isEdit && cName.trim()) {
+        await saveContact(
+          draftContact(saved.id, {
+            name: cName.trim(),
+            position: cPos.trim(),
+            phone: cPhone || s.phone,
+            email: cEmail || s.email,
+            wechat: cWechat || s.wechat,
+            first_met_exhibition_id: saved.first_met_exhibition_id,
+          }),
+        )
+      }
+      return saved
+    },
     onSuccess: (saved) => {
       qc.invalidateQueries({ queryKey: ['suppliers'] })
       qc.invalidateQueries({ queryKey: ['supplier', saved.id] })
@@ -79,6 +101,32 @@ function Inner({ initial, isEdit }: { initial: Supplier; isEdit: boolean }) {
         <Field label="Also known as" hint="Alternative names / spellings, for search & de-duplication.">
           <input value={s.aliases} onChange={(e) => set('aliases', e.target.value)} />
         </Field>
+
+        {!isEdit && (
+          <>
+            <h3 className="section-label">Primary contact person (optional)</h3>
+            <Field label="Contact name">
+              <input value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Person you deal with" />
+            </Field>
+            <div className="row2">
+              <Field label="Position">
+                <input value={cPos} onChange={(e) => setCPos(e.target.value)} placeholder="e.g. Sales Manager" />
+              </Field>
+              <Field label="Contact phone" hint="Blank = use company phone.">
+                <input value={cPhone} onChange={(e) => setCPhone(e.target.value)} />
+              </Field>
+            </div>
+            <div className="row2">
+              <Field label="Contact email" hint="Blank = use company email.">
+                <input type="email" value={cEmail} onChange={(e) => setCEmail(e.target.value)} />
+              </Field>
+              <Field label="Contact WeChat">
+                <input value={cWechat} onChange={(e) => setCWechat(e.target.value)} />
+              </Field>
+            </div>
+          </>
+        )}
+
         <Field label="Notes">
           <textarea value={s.notes} onChange={(e) => set('notes', e.target.value)} />
         </Field>
