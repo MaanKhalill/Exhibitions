@@ -9,6 +9,8 @@ import { PRIORITY_LABELS, type Priority, type Supplier } from '../types'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { Field, Page, ErrorNote } from '../components/ui'
 import { Stars } from '../components/Stars'
+import { CardScanButton } from '../components/CardScanButton'
+import type { ParsedCard } from '../lib/cardOcr'
 
 export function AddToFair() {
   const navigate = useNavigate()
@@ -48,6 +50,18 @@ export function AddToFair() {
         <p className="hint">Select or create an exhibition first (use the switcher above).</p>
       </Page>
     )
+  }
+
+  // Fill empty fields from a scanned card (never overwrite what's typed).
+  function applyCard(p: ParsedCard) {
+    if (linked) return
+    if (p.company && !company.trim()) setCompany(p.company)
+    if (p.contactName && !contactName.trim()) setContactName(p.contactName)
+    if (p.position && !position.trim()) setPosition(p.position)
+    if (p.phone && !phone.trim()) setPhone(p.phone)
+    if (p.email && !email.trim()) setEmail(p.email)
+    if (p.website && !website.trim()) setWebsite(p.website)
+    if (p.wechat && !wechat.trim()) setWechat(p.wechat)
   }
 
   async function checkDuplicates() {
@@ -124,6 +138,7 @@ export function AddToFair() {
 
   return (
     <Page title="Add supplier" subtitle={`to ${current.name}${current.edition ? ' · ' + current.edition : ''}`} back>
+      {!linked && <CardScanButton onParsed={applyCard} />}
       {linked ? (
         <div className="detail-section">
           <h3>Linked to existing supplier</h3>
