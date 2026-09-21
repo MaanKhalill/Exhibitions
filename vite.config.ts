@@ -8,6 +8,11 @@ import { viteSingleFile } from 'vite-plugin-singlefile'
 export default defineConfig(({ mode }) => {
   const isDemo = mode === 'demo'
   return {
+    // Build stamp (set when this build runs — i.e. at deploy time on Vercel) so
+    // the app can show which version is live.
+    define: {
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    },
     // Relative base so the single-file preview works when hosted at any path.
     base: isDemo ? './' : '/',
     plugins: isDemo

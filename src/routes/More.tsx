@@ -46,6 +46,17 @@ function MenuList({ items }: { items: Item[] }) {
   )
 }
 
+function buildStamp(): string {
+  try {
+    const d = new Date(__BUILD_TIME__)
+    if (isNaN(d.getTime())) return 'dev'
+    const p = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+  } catch {
+    return 'dev'
+  }
+}
+
 export function More() {
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -77,7 +88,9 @@ export function More() {
         </button>
       </div>
       <p className="hint" style={{ textAlign: 'center', marginTop: 16 }}>
-        Multi-Exhibition Supplier Intelligence · Phase 1 · works offline
+        Multi-Exhibition Supplier Intelligence · works offline
+        <br />
+        <span style={{ fontSize: 12 }}>Build {buildStamp()}</span>
       </p>
     </Page>
   )
