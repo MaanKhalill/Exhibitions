@@ -20,14 +20,15 @@ let tesseract: Promise<any> | null = null
 function loadTesseract(): Promise<any> {
   if (!tesseract)
     // @ts-expect-error - remote ESM module loaded at runtime; no local types
-    tesseract = import(/* @vite-ignore */ 'https://esm.sh/tesseract.js@5')
+    tesseract = import(/* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/tesseract.js@5/+esm')
   return tesseract
 }
 
 /** OCR an image (English) and return the raw recognised text. */
 export async function recognizeCard(image: File | Blob | string, onProgress?: (pct: number) => void): Promise<string> {
-  const T = await loadTesseract()
-  const worker = await T.createWorker('eng', 1, {
+  const mod = await loadTesseract()
+  const createWorker = mod.createWorker || mod.default?.createWorker
+  const worker = await createWorker('eng', 1, {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     logger: (m: any) => {
       if (m?.status === 'recognizing text' && onProgress) onProgress(m.progress ?? 0)
