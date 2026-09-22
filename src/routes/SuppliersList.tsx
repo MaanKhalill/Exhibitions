@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listSuppliers } from '../api/suppliers'
 import { Empty, Page, Spinner } from '../components/ui'
+import { ExportMenu } from '../components/ExportMenu'
+import { suppliersReport } from '../lib/report'
 
 type SortKey = 'name' | 'city'
 
@@ -49,6 +51,18 @@ export function SuppliersList() {
           <option value="city">Location (city)</option>
         </select>
       </div>
+
+      {rows.length > 0 && (
+        <ExportMenu
+          build={() =>
+            suppliersReport(rows, {
+              title: 'Supplier directory',
+              subtitle: term.trim() ? `Search: “${term.trim()}”` : 'All suppliers, across every exhibition',
+              filename: `suppliers${term.trim() ? '-search' : ''}`,
+            })
+          }
+        />
+      )}
 
       {isLoading ? (
         <Spinner />

@@ -6,6 +6,8 @@ import { useExhibitions } from '../lib/ExhibitionContext'
 import { boothSortKey } from '../lib/booth'
 import { PRIORITY_LABELS, VISIT_STATUS_LABELS, type ParticipationWithSupplier } from '../types'
 import { Empty, Page, Spinner } from '../components/ui'
+import { ExportMenu } from '../components/ExportMenu'
+import { fairSuppliersReport } from '../lib/report'
 
 type FilterKey = 'all' | 'must' | 'confirmed' | 'todo' | 'completed' | 'factory'
 const FILTERS: { key: FilterKey; label: string }[] = [
@@ -99,6 +101,24 @@ export function FairSuppliers() {
           <option value="name">Company name (A–Z)</option>
         </select>
       </div>
+
+      {rows.length > 0 && (
+        <ExportMenu
+          build={() =>
+            fairSuppliersReport(rows, {
+              title: `Fair suppliers — ${current.name}${current.edition ? ' · ' + current.edition : ''}`,
+              subtitle: [
+                filter !== 'all' ? FILTERS.find((f) => f.key === filter)?.label : null,
+                term.trim() ? `Search: “${term.trim()}”` : null,
+                `Sorted by ${sort === 'name' ? 'company name' : 'hall & booth'}`,
+              ]
+                .filter(Boolean)
+                .join(' · '),
+              filename: `fair-suppliers-${current.name}`,
+            })
+          }
+        />
+      )}
 
       {isLoading ? (
         <Spinner />

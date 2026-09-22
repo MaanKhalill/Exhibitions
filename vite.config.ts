@@ -40,6 +40,10 @@ export default defineConfig(({ mode }) => {
           },
           workbox: {
             globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+            // jsPDF's optional html()-rendering deps (html2canvas, canvg, DOMPurify)
+            // are code-split but never used by our text/table reports — keep them
+            // out of the precache so the offline install stays small.
+            globIgnores: ['**/html2canvas*.js', '**/purify*.js', '**/index.es-*.js'],
             navigateFallbackDenylist: [/^\/rest\//, /^\/auth\//, /^\/storage\//],
           },
         }),

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { globalSearch } from '../api/search'
 import { Empty, Page, Spinner } from '../components/ui'
+import { ExportMenu } from '../components/ExportMenu'
+import { suppliersReport } from '../lib/report'
 
 export function Search() {
   const [term, setTerm] = useState('')
@@ -36,6 +38,18 @@ export function Search() {
       ) : (
         <>
           <p className="hint">{data.length} supplier{data.length === 1 ? '' : 's'} found</p>
+          <ExportMenu
+            build={() =>
+              suppliersReport(
+                data.map((r) => r.supplier),
+                {
+                  title: 'Search results',
+                  subtitle: `Search: “${term.trim()}”`,
+                  filename: `search-${term.trim()}`,
+                },
+              )
+            }
+          />
           {data.map((r) => (
             <Link key={r.supplier.id} className="card" to={`/suppliers/${r.supplier.id}`}>
               <div className="card-head">
