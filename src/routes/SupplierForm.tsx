@@ -6,6 +6,8 @@ import { saveContact } from '../api/contacts'
 import { draftContact, draftSupplier } from '../lib/defaults'
 import type { Supplier } from '../types'
 import { Field, Page, Spinner, ErrorNote } from '../components/ui'
+import { CardScanButton } from '../components/CardScanButton'
+import type { ParsedCard } from '../lib/cardOcr'
 
 export function SupplierForm() {
   const { id } = useParams()
@@ -29,6 +31,20 @@ function Inner({ initial, isEdit }: { initial: Supplier; isEdit: boolean }) {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const set = <K extends keyof Supplier>(k: K, v: Supplier[K]) => setS((p) => ({ ...p, [k]: v }))
+
+  // Fill empty fields from a scanned business card (never overwrite typed input).
+  function applyCard(p: ParsedCard) {
+    setS((cur) => ({
+      ...cur,
+      company_name: cur.company_name || p.company || '',
+      website: cur.website || p.website || '',
+      phone: cur.phone || p.phone || '',
+      email: cur.email || p.email || '',
+      wechat: cur.wechat || p.wechat || '',
+    }))
+    if (p.contactName) setCName((v) => v || p.contactName!)
+    if (p.position) setCPos((v) => v || p.position!)
+  }
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -63,6 +79,7 @@ function Inner({ initial, isEdit }: { initial: Supplier; isEdit: boolean }) {
           mutation.mutate()
         }}
       >
+        {!isEdit && <CardScanButton onParsed={applyCard} />}
         <Field label="Company name *">
           <input value={s.company_name} onChange={(e) => set('company_name', e.target.value)} required autoFocus />
         </Field>
