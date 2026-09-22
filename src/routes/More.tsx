@@ -21,6 +21,7 @@ const GLOBAL: Item[] = [
   { to: '/contacts', label: 'Contacts', icon: '👤' },
   { to: '/follow-ups', label: 'Follow-ups', icon: '✅' },
   { to: '/analytics', label: 'Analytics', icon: '📊' },
+  { to: '/reports', label: 'Custom report', icon: '🧾' },
 ]
 
 const IN_EXHIBITION: Item[] = [

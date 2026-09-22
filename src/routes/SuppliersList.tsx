@@ -63,6 +63,9 @@ export function SuppliersList() {
           }
         />
       )}
+      <p className="hint" style={{ marginTop: -4 }}>
+        Need specific columns? <Link to="/reports">Build a custom report →</Link>
+      </p>
 
       {isLoading ? (
         <Spinner />
