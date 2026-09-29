@@ -6,7 +6,7 @@ import { Empty, Page, Spinner } from '../components/ui'
 import { ExportMenu } from '../components/ExportMenu'
 import { suppliersReport } from '../lib/report'
 
-type SortKey = 'name' | 'city'
+type SortKey = 'name' | 'province' | 'city'
 
 export function SuppliersList() {
   const navigate = useNavigate()
@@ -19,12 +19,12 @@ export function SuppliersList() {
 
   const rows = useMemo(() => {
     const byName = (a: string, b: string) => (a || '￿').localeCompare(b || '￿', undefined, { sensitivity: 'base' })
-    return [...data].sort((a, b) =>
-      sort === 'city'
-        ? byName([a.city, a.country].filter(Boolean).join(', '), [b.city, b.country].filter(Boolean).join(', ')) ||
-          byName(a.company_name, b.company_name)
-        : byName(a.company_name, b.company_name),
-    )
+    return [...data].sort((a, b) => {
+      if (sort === 'province')
+        return byName(a.province, b.province) || byName(a.city, b.city) || byName(a.company_name, b.company_name)
+      if (sort === 'city') return byName(a.city, b.city) || byName(a.company_name, b.company_name)
+      return byName(a.company_name, b.company_name)
+    })
   }, [data, sort])
 
   return (
@@ -48,7 +48,8 @@ export function SuppliersList() {
         <span className="hint" style={{ margin: 0 }}>Sort by</span>
         <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} style={{ flex: 1, maxWidth: 240 }}>
           <option value="name">Company name (A–Z)</option>
-          <option value="city">Location (city)</option>
+          <option value="province">Province</option>
+          <option value="city">City</option>
         </select>
       </div>
 
@@ -90,7 +91,9 @@ export function SuppliersList() {
               </div>
             )}
             <div className="card-meta">
-              {(s.city || s.country) && <span>📍 {[s.city, s.country].filter(Boolean).join(', ')}</span>}
+              {(s.city || s.province || s.country) && (
+                <span>📍 {[s.city, s.province, s.country].filter(Boolean).join(', ')}</span>
+              )}
               {s.website && <span>🌐 {s.domain || s.website}</span>}
             </div>
           </Link>

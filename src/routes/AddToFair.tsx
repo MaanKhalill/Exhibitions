@@ -22,6 +22,12 @@ export function AddToFair() {
   const [website, setWebsite] = useState('')
   const [products, setProducts] = useState('')
 
+  // Company address (structured)
+  const [country, setCountry] = useState('')
+  const [province, setProvince] = useState('')
+  const [city, setCity] = useState('')
+  const [address, setAddress] = useState('')
+
   // Contact person (their business card) — saved as a contact on the supplier.
   const [contactName, setContactName] = useState('')
   const [position, setPosition] = useState('')
@@ -93,6 +99,10 @@ export function AddToFair() {
             phone,
             email,
             wechat,
+            country,
+            province,
+            city,
+            address,
             product_summary: products,
             first_met_exhibition_id: current.id,
           }),
@@ -179,6 +189,22 @@ export function AddToFair() {
 
           <Field label="Website">
             <input value={website} onChange={(e) => setWebsite(e.target.value)} onBlur={checkDuplicates} />
+          </Field>
+
+          <h3 className="section-label">Address</h3>
+          <div className="row2">
+            <Field label="Country">
+              <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. China" />
+            </Field>
+            <Field label="Province / State">
+              <input value={province} onChange={(e) => setProvince(e.target.value)} placeholder="e.g. Guangdong" />
+            </Field>
+          </div>
+          <Field label="City">
+            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Guangzhou" />
+          </Field>
+          <Field label="Detailed address" hint="Street, building, unit, district…">
+            <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, building, unit…" />
           </Field>
         </>
       )}
