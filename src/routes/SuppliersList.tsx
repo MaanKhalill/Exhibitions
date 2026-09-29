@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listSuppliers } from '../api/suppliers'
 import { Empty, Page, Spinner } from '../components/ui'
 import { ExportMenu } from '../components/ExportMenu'
 import { suppliersReport } from '../lib/report'
+import { setNavOrder } from '../lib/navOrder'
 
 type SortKey = 'name' | 'province' | 'city'
 
@@ -26,6 +27,11 @@ export function SuppliersList() {
       return byName(a.company_name, b.company_name)
     })
   }, [data, sort])
+
+  // Remember this exact order so a supplier page can swipe prev/next through it.
+  useEffect(() => {
+    setNavOrder('directory', rows.map((s) => s.id))
+  }, [rows])
 
   return (
     <Page

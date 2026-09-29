@@ -1,12 +1,16 @@
+import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteSupplier, getSupplier } from '../api/suppliers'
+import { deleteSupplier, getSupplier, listSuppliers } from '../api/suppliers'
 import { listContactsForSupplier } from '../api/contacts'
 import { listParticipationsForSupplier } from '../api/participations'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { PRIORITY_LABELS, VISIT_STATUS_LABELS, type Contact } from '../types'
 import { mailUrl, mapSearchUrl, siteUrl, telUrl, whatsappUrl } from '../lib/maps'
+import { getNavOrder } from '../lib/navOrder'
+import { useSwipe } from '../lib/useSwipe'
 import { Page, Spinner } from '../components/ui'
+import { NavArrows } from '../components/NavArrows'
 import { SupplierUpdateRequest } from '../components/SupplierUpdateRequest'
 import { WeChatLink } from '../components/WeChatLink'
 
@@ -56,6 +60,27 @@ export function SupplierDetail() {
   const { data: contacts = [] } = useQuery({ queryKey: ['contacts', id], queryFn: () => listContactsForSupplier(id!), enabled: Boolean(id) })
   const { data: parts = [] } = useQuery({ queryKey: ['supplier-parts', id], queryFn: () => listParticipationsForSupplier(id!), enabled: Boolean(id) })
 
+  // Swipe / prev-next through the directory order (falls back to A–Z of all).
+  const { data: allForNav = [] } = useQuery({ queryKey: ['suppliers', ''], queryFn: () => listSuppliers('') })
+  const navIds = useMemo(() => {
+    const stored = getNavOrder('directory')
+    if (id && stored.includes(id)) return stored
+    return [...allForNav]
+      .sort((a, b) => (a.company_name || '￿').localeCompare(b.company_name || '￿', undefined, { sensitivity: 'base' }))
+      .map((x) => x.id)
+  }, [allForNav, id])
+  const navIndex = id ? navIds.indexOf(id) : -1
+  const goTo = (i: number) => {
+    const t = navIds[i]
+    if (t && t !== id) navigate(`/suppliers/${t}`, { replace: true })
+  }
+  const swipe = useSwipe({
+    onPrev: () => goTo(navIndex - 1),
+    onNext: () => goTo(navIndex + 1),
+    canPrev: navIndex > 0,
+    canNext: navIndex >= 0 && navIndex < navIds.length - 1,
+  })
+
   const del = useMutation({
     mutationFn: () => deleteSupplier(id!),
     onSuccess: () => {
@@ -85,6 +110,7 @@ export function SupplierDetail() {
   const others = people.slice(1)
 
   return (
+    <div {...swipe}>
     <Page
       title={s.company_name || 'Supplier'}
       subtitle={[s.city, s.country].filter(Boolean).join(', ')}
@@ -95,6 +121,7 @@ export function SupplierDetail() {
         </button>
       }
     >
+      <NavArrows index={navIndex} total={navIds.length} onPrev={() => goTo(navIndex - 1)} onNext={() => goTo(navIndex + 1)} />
       {(tel || wa || mail || site) && (
         <div className="actions" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
           {tel && <a className="btn" href={tel}>📞 Call</a>}
@@ -188,6 +215,7 @@ export function SupplierDetail() {
         {del.isPending ? 'Deleting…' : 'Delete supplier'}
       </button>
     </Page>
+    </div>
   )
 }
 

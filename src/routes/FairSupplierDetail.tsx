@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getParticipation, saveParticipation, deleteParticipation } from '../api/participations'
+import { getParticipation, saveParticipation, deleteParticipation, listParticipations } from '../api/participations'
 import { getSupplier } from '../api/suppliers'
 import { draftParticipation } from '../lib/defaults'
+import { boothSortKey } from '../lib/booth'
+import { getNavOrder } from '../lib/navOrder'
+import { useSwipe } from '../lib/useSwipe'
+import { NavArrows } from '../components/NavArrows'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import {
   FOLLOW_UP_OPTIONS,
@@ -71,6 +75,29 @@ export function FairSupplierDetail() {
     },
   })
 
+  // Swipe / prev-next through the fair list order (falls back to booth order).
+  const { data: fairList = [] } = useQuery({
+    queryKey: ['participations', current?.id],
+    queryFn: () => listParticipations(current!.id),
+    enabled: Boolean(current),
+  })
+  const navIds = useMemo(() => {
+    const stored = getNavOrder('fair')
+    if (supplierId && stored.includes(supplierId)) return stored
+    return [...fairList].sort((a, b) => boothSortKey(a).localeCompare(boothSortKey(b))).map((x) => x.supplier_id)
+  }, [fairList, supplierId])
+  const navIndex = supplierId ? navIds.indexOf(supplierId) : -1
+  const goTo = (i: number) => {
+    const t = navIds[i]
+    if (t && t !== supplierId) navigate(`/fair/supplier/${t}`, { replace: true })
+  }
+  const swipe = useSwipe({
+    onPrev: () => goTo(navIndex - 1),
+    onNext: () => goTo(navIndex + 1),
+    canPrev: navIndex > 0,
+    canNext: navIndex >= 0 && navIndex < navIds.length - 1,
+  })
+
   if (!current) return <Page title="Supplier" back><p className="hint">No exhibition selected.</p></Page>
   if (isLoading || !p) return <Spinner />
 
@@ -83,6 +110,7 @@ export function FairSupplierDetail() {
   }
 
   return (
+    <div {...swipe}>
     <Page
       title={supplier?.company_name || 'Supplier'}
       subtitle={supplier ? undefined : 'Loading…'}
@@ -95,6 +123,7 @@ export function FairSupplierDetail() {
         )
       }
     >
+      <NavArrows index={navIndex} total={navIds.length} onPrev={() => goTo(navIndex - 1)} onNext={() => goTo(navIndex + 1)} />
       <div className="actions" style={{ marginBottom: 12 }}>
         {supplier?.phone && <a className="btn" href={`tel:${supplier.phone.replace(/\s+/g, '')}`}>📞</a>}
         <button className="btn" onClick={() => quickStatus('arrived')}>Arrived</button>
@@ -212,5 +241,6 @@ export function FairSupplierDetail() {
         </button>
       )}
     </Page>
+    </div>
   )
 }

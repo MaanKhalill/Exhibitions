@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listParticipations } from '../api/participations'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { boothSortKey } from '../lib/booth'
+import { setNavOrder } from '../lib/navOrder'
 import { PRIORITY_LABELS, VISIT_STATUS_LABELS, type ParticipationWithSupplier } from '../types'
 import { telUrl, whatsappUrl } from '../lib/maps'
 import { Empty, Page, Spinner } from '../components/ui'
@@ -69,6 +70,11 @@ export function FairSuppliers() {
           : boothSortKey(a).localeCompare(boothSortKey(b)),
       )
   }, [data, term, filter, sort])
+
+  // Remember this exact order so a supplier page can swipe prev/next through it.
+  useEffect(() => {
+    setNavOrder('fair', rows.map((p) => p.supplier_id))
+  }, [rows])
 
   if (!current) {
     return (
