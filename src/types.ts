@@ -49,6 +49,7 @@ export interface Supplier {
   website: string
   domain: string
   country: string
+  province: string
   city: string
   address: string
   phone: string

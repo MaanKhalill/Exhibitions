@@ -104,16 +104,20 @@ function Inner({ initial, isEdit }: { initial: Supplier; isEdit: boolean }) {
         <Field label="Email">
           <input type="email" value={s.email} onChange={(e) => set('email', e.target.value)} />
         </Field>
+        <h3 className="section-label">Address</h3>
         <div className="row2">
-          <Field label="City">
-            <input value={s.city} onChange={(e) => set('city', e.target.value)} />
-          </Field>
           <Field label="Country">
-            <input value={s.country} onChange={(e) => set('country', e.target.value)} />
+            <input value={s.country} onChange={(e) => set('country', e.target.value)} placeholder="e.g. China" />
+          </Field>
+          <Field label="Province / State">
+            <input value={s.province} onChange={(e) => set('province', e.target.value)} placeholder="e.g. Guangdong" />
           </Field>
         </div>
-        <Field label="Address">
-          <input value={s.address} onChange={(e) => set('address', e.target.value)} />
+        <Field label="City">
+          <input value={s.city} onChange={(e) => set('city', e.target.value)} placeholder="e.g. Guangzhou" />
+        </Field>
+        <Field label="Detailed address" hint="Street, building, unit, district…">
+          <input value={s.address} onChange={(e) => set('address', e.target.value)} placeholder="e.g. Rm 1806, GT Land Plaza, Zhujiang New Town" />
         </Field>
         <Field label="Also known as" hint="Alternative names / spellings, for search & de-duplication.">
           <input value={s.aliases} onChange={(e) => set('aliases', e.target.value)} />

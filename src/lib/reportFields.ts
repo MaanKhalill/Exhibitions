@@ -94,8 +94,9 @@ export const FIELDS: FieldDef[] = [
   supF('wechat', 'WeChat', (s) => s.wechat),
   supF('email', 'Email', (s) => s.email),
   supF('city', 'City', (s) => s.city),
+  supF('province', 'Province / State', (s) => s.province),
   supF('country', 'Country', (s) => s.country),
-  supF('address', 'Address', (s) => s.address),
+  supF('address', 'Detailed address', (s) => s.address),
   supF('notes', 'Supplier notes', (s) => s.notes),
   supF('created_at', 'Added on', (s) => dOnly(s.created_at), (s) => s.created_at || ''),
 

@@ -76,7 +76,7 @@ export function SupplierDetail() {
   const wa = whatsappUrl(s.phone)
   const mail = mailUrl(s.email)
   const site = siteUrl(s.website)
-  const map = mapSearchUrl(s.address, s.city, s.country)
+  const map = mapSearchUrl(s.address, s.city, s.province, s.country)
 
   // The contacts list holds the current details of each person — most recently
   // updated first, so the top one is the latest primary contact.
@@ -111,12 +111,23 @@ export function SupplierDetail() {
         <WeChatRow id={s.wechat} />
         <Row k="Email" v={s.email} href={mail} />
         <Row k="Website" v={s.domain || s.website} href={site} external />
-        <Row k="Address" v={s.address} map={map} />
-        {!s.address && (s.city || s.country) && (
-          <Row k="Location" v={[s.city, s.country].filter(Boolean).join(', ')} map={map} />
-        )}
         <Row k="Also known as" v={s.aliases} />
       </div>
+
+      {(s.address || s.city || s.province || s.country) && (
+        <div className="detail-section">
+          <h3>Address</h3>
+          <Row k="Street / building" v={s.address} />
+          <Row k="City" v={s.city} />
+          <Row k="Province / State" v={s.province} />
+          <Row k="Country" v={s.country} />
+          {map && (
+            <div className="actions" style={{ marginTop: 10 }}>
+              <a className="btn" href={map} target="_blank" rel="noreferrer">📍 Open in Google Maps</a>
+            </div>
+          )}
+        </div>
+      )}
 
       {primary && <ContactCard title={others.length ? 'Primary contact' : 'Contact person'} c={primary} />}
       {others.map((c) => (
