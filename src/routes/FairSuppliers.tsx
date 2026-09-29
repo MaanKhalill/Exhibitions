@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listParticipations } from '../api/participations'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { boothSortKey } from '../lib/booth'
 import { PRIORITY_LABELS, VISIT_STATUS_LABELS, type ParticipationWithSupplier } from '../types'
+import { telUrl, whatsappUrl } from '../lib/maps'
 import { Empty, Page, Spinner } from '../components/ui'
 import { ExportMenu } from '../components/ExportMenu'
 import { fairSuppliersReport } from '../lib/report'
+
+const btnSmall = { padding: '7px 12px', fontSize: 13 } as const
 
 type FilterKey = 'all' | 'must' | 'confirmed' | 'todo' | 'completed' | 'factory'
 const FILTERS: { key: FilterKey; label: string }[] = [
@@ -129,25 +132,56 @@ export function FairSuppliers() {
           hint={data.length === 0 ? 'Tap ＋ to add your first supplier or booth.' : undefined}
         />
       ) : (
-        rows.map((p) => (
-          <div key={p.id} className="card" onClick={() => navigate(`/fair/supplier/${p.supplier_id}`)}>
-            <div className="card-head">
-              <div className="name">{p.supplier.company_name || 'Unnamed'}</div>
-              {p.priority === 'must' && <span className="badge status-ordered">Must</span>}
+        rows.map((p) => {
+          const phone = p.supplier.phone || p.booth_contact_phone || ''
+          const tel = telUrl(phone)
+          const wa = whatsappUrl(phone)
+          const contactName = p.booth_contact_name || ''
+          return (
+            <div key={p.id} className="card" onClick={() => navigate(`/fair/supplier/${p.supplier_id}`)}>
+              <div className="card-head">
+                <div className="name">{p.supplier.company_name || 'Unnamed'}</div>
+                {p.priority === 'must' && <span className="badge status-ordered">Must</span>}
+              </div>
+              {(p.products_shown || p.supplier.product_summary) && (
+                <div className="card-meta"><span>{p.products_shown || p.supplier.product_summary}</span></div>
+              )}
+              {/* Booth location — the most-used fields, shown clearly */}
+              <div className="card-meta">
+                {p.hall && <span>🏛 Hall {p.hall}</span>}
+                {p.booth && <span>📍 Booth {p.booth}</span>}
+                <span>{VISIT_STATUS_LABELS[p.visit_status]}</span>
+                {p.priority !== 'must' && p.priority !== 'tbd' && <span>{PRIORITY_LABELS[p.priority]}</span>}
+                {p.rating > 0 && <span className="stars">{'★'.repeat(p.rating)}</span>}
+                {p.factory_candidate && <span>🏭 Factory</span>}
+              </div>
+              {/* Contact line */}
+              {(phone || p.supplier.wechat || contactName) && (
+                <div className="card-meta">
+                  {contactName && <span>👤 {contactName}</span>}
+                  {phone && <span>📞 {phone}</span>}
+                  {p.supplier.wechat && <span>💬 WeChat {p.supplier.wechat}</span>}
+                </div>
+              )}
+              {/* Quick actions — don't trigger the card's own navigation */}
+              <div
+                className="card-meta"
+                style={{ gap: 8, marginTop: 8 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Link className="btn" style={btnSmall} to={`/suppliers/${p.supplier_id}`}>
+                  📇 Full contact details
+                </Link>
+                {tel && <a className="btn" style={btnSmall} href={tel}>📞 Call</a>}
+                {wa && (
+                  <a className="btn" style={btnSmall} href={wa} target="_blank" rel="noreferrer">
+                    💬 WhatsApp
+                  </a>
+                )}
+              </div>
             </div>
-            {(p.products_shown || p.supplier.product_summary) && (
-              <div className="card-meta"><span>{p.products_shown || p.supplier.product_summary}</span></div>
-            )}
-            <div className="card-meta">
-              {p.hall && <span>🏛 Hall {p.hall}</span>}
-              {p.booth && <span>📍 {p.booth}</span>}
-              <span>{VISIT_STATUS_LABELS[p.visit_status]}</span>
-              {p.priority !== 'must' && p.priority !== 'tbd' && <span>{PRIORITY_LABELS[p.priority]}</span>}
-              {p.rating > 0 && <span className="stars">{'★'.repeat(p.rating)}</span>}
-              {p.factory_candidate && <span>🏭</span>}
-            </div>
-          </div>
-        ))
+          )
+        })
       )}
     </Page>
   )

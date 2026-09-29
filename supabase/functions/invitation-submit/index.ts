@@ -96,17 +96,6 @@ Deno.serve(async (req) => {
         address: nz(p.address || '', cur?.address),
       }
       await admin.from('ex_suppliers').update(next).eq('id', supplierId)
-
-      // Record every overwrite of a previously non-empty field (change history).
-      const tracked = ['company_name', 'product_summary', 'website', 'phone', 'wechat', 'email', 'city', 'country', 'address']
-      const changes = tracked
-        .map((f) => ({ f, oldV: String(cur?.[f] ?? ''), newV: String(next[f] ?? '') }))
-        .filter(({ oldV, newV }) => oldV.trim() && newV !== oldV)
-        .map(({ f, oldV, newV }) => ({
-          user_id: owner, supplier_id: supplierId, invitation_id: inv.id,
-          entity: 'supplier', entity_label: '', field: f, old_value: oldV, new_value: newV,
-        }))
-      if (changes.length) await admin.from('ex_supplier_changes').insert(changes)
     } else {
       const { data: created, error: cErr } = await admin.from('ex_suppliers').insert({
         user_id: owner,
@@ -138,14 +127,6 @@ Deno.serve(async (req) => {
           email: nz(p.email || '', match.email),
         }
         await admin.from('ex_contacts').update(cnext).eq('id', match.id)
-        const cchanges = ['phone', 'wechat', 'email']
-          .map((f) => ({ f, oldV: String((match as any)[f] ?? ''), newV: String(cnext[f] ?? '') }))
-          .filter(({ oldV, newV }) => oldV.trim() && newV !== oldV)
-          .map(({ f, oldV, newV }) => ({
-            user_id: owner, supplier_id: supplierId, invitation_id: inv.id,
-            entity: 'contact', entity_label: match.name || contactName, field: f, old_value: oldV, new_value: newV,
-          }))
-        if (cchanges.length) await admin.from('ex_supplier_changes').insert(cchanges)
       } else {
         await admin.from('ex_contacts').insert({
           user_id: owner, supplier_id: supplierId, name: contactName,

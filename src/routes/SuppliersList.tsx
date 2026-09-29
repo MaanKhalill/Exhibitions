@@ -82,6 +82,13 @@ export function SuppliersList() {
               <div className="name">{s.company_name || 'Unnamed supplier'}</div>
             </div>
             {s.product_summary && <div className="card-meta"><span>{s.product_summary}</span></div>}
+            {(s.phone || s.email || s.wechat) && (
+              <div className="card-meta">
+                {s.phone && <span>📞 {s.phone}</span>}
+                {s.wechat && <span>💬 {s.wechat}</span>}
+                {s.email && <span>✉️ {s.email}</span>}
+              </div>
+            )}
             <div className="card-meta">
               {(s.city || s.country) && <span>📍 {[s.city, s.country].filter(Boolean).join(', ')}</span>}
               {s.website && <span>🌐 {s.domain || s.website}</span>}
