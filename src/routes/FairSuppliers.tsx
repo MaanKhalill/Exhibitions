@@ -7,6 +7,7 @@ import { boothSortKey } from '../lib/booth'
 import { PRIORITY_LABELS, VISIT_STATUS_LABELS, type ParticipationWithSupplier } from '../types'
 import { telUrl, whatsappUrl } from '../lib/maps'
 import { Empty, Page, Spinner } from '../components/ui'
+import { WeChatLink } from '../components/WeChatLink'
 import { ExportMenu } from '../components/ExportMenu'
 import { fairSuppliersReport } from '../lib/report'
 
@@ -160,7 +161,7 @@ export function FairSuppliers() {
                 <div className="card-meta">
                   {contactName && <span>👤 {contactName}</span>}
                   {phone && <span>📞 {phone}</span>}
-                  {p.supplier.wechat && <span>💬 WeChat {p.supplier.wechat}</span>}
+                  {p.supplier.wechat && <span>💬 WeChat <WeChatLink id={p.supplier.wechat} stop /></span>}
                 </div>
               )}
               {/* Quick actions — don't trigger the card's own navigation */}

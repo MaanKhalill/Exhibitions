@@ -33,3 +33,16 @@ export function siteUrl(website: string | null | undefined): string | undefined 
   if (!website) return undefined
   return website.startsWith('http') ? website : `https://${website}`
 }
+
+/** URL scheme that launches the WeChat app (there is no public deep-link to a
+ *  specific contact, so we open the app and copy the ID for pasting into search). */
+export const WECHAT_APP_URL = 'weixin://'
+
+/** Best-effort copy to clipboard (never throws). */
+export function copyText(text: string): void {
+  try {
+    navigator.clipboard?.writeText(text)
+  } catch {
+    /* clipboard blocked (insecure context, permissions) — ignore */
+  }
+}

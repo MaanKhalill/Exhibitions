@@ -8,6 +8,18 @@ import { PRIORITY_LABELS, VISIT_STATUS_LABELS, type Contact } from '../types'
 import { mailUrl, mapSearchUrl, siteUrl, telUrl, whatsappUrl } from '../lib/maps'
 import { Page, Spinner } from '../components/ui'
 import { SupplierUpdateRequest } from '../components/SupplierUpdateRequest'
+import { WeChatLink } from '../components/WeChatLink'
+
+/** A labelled row whose value is a WeChat ID that opens the WeChat app. */
+function WeChatRow({ id }: { id: string }) {
+  if (!id) return null
+  return (
+    <div className="kv">
+      <span className="k">WeChat</span>
+      <span className="v"><WeChatLink id={id} /></span>
+    </div>
+  )
+}
 
 /** One labelled contact line. `href` makes the value a link; `map` adds a map link. */
 function Row({ k, v, href, map, external }: { k: string; v: string; href?: string; map?: string; external?: boolean }) {
@@ -96,7 +108,7 @@ export function SupplierDetail() {
         <h3>Company contact</h3>
         <Row k="Phone" v={s.phone} href={tel} />
         <Row k="WhatsApp" v={wa ? s.phone : ''} href={wa} external />
-        <Row k="WeChat" v={s.wechat} />
+        <WeChatRow id={s.wechat} />
         <Row k="Email" v={s.email} href={mail} />
         <Row k="Website" v={s.domain || s.website} href={site} external />
         <Row k="Address" v={s.address} map={map} />
@@ -182,7 +194,7 @@ function ContactCard({ title, c }: { title: string; c: Contact }) {
       </div>
       <Row k="Phone" v={c.phone} href={tel} />
       <Row k="WhatsApp" v={wa ? c.phone : ''} href={wa} external />
-      <Row k="WeChat" v={c.wechat} />
+      <WeChatRow id={c.wechat} />
       <Row k="Email" v={c.email} href={mail} />
       {c.notes && <Row k="Notes" v={c.notes} />}
     </div>
