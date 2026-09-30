@@ -148,19 +148,24 @@ export function FactoryPlanner() {
           <div className="detail-section">
             <h3>🗺 Whole factory trip on one map</h3>
             <p className="hint" style={{ marginTop: 0 }}>
-              Opens one Google Map that starts at the <b>Canton Fair complex</b> and drops a labelled stop
-              for every factory ticked below — Google draws the driving route and times so you can plan the
-              fastest run after the show. Untick any factory to leave it off the map.
+              Opens one Google Map that <b>starts and ends at the Canton Fair complex</b> and visits every
+              ticked factory in between, ordered nearest-first — Google draws the full round-trip route and
+              driving times so you can plan the run after the show. Untick any factory to leave it off.
             </p>
             {mapPlan.count > 0 ? (
               <>
                 <a className="btn primary block" href={mapPlan.url} target="_blank" rel="noreferrer">
-                  🗺 Open {mapPlan.count} factor{mapPlan.count === 1 ? 'y' : 'ies'} on one map (from Canton Fair)
+                  🗺 Open the trip on one map (Canton → {mapPlan.count} factor{mapPlan.count === 1 ? 'y' : 'ies'} → Canton)
                 </a>
                 <p className="hint" style={{ marginBottom: 0 }}>
                   📍 {exactCount} exact · {approxCount} approx · {mapPlan.count - pinned.length} by address.
                   {exactCount < mapPlan.count ? ' Open a factory and paste its exact point (right‑click in Maps → Copy coordinates) to pin it precisely.' : ' All pinned precisely.'}
                 </p>
+                {mapPlan.capped && (
+                  <p className="hint" style={{ marginBottom: 0, color: 'var(--red)' }}>
+                    Google maps only routes ~9 stops at once, so the map shows the 9 nearest. The full list is in the trip summary below.
+                  </p>
+                )}
               </>
             ) : (
               <p className="hint" style={{ marginBottom: 0 }}>
