@@ -164,12 +164,124 @@ export function haversineKm(a: LatLng, b: LatLng): number {
   return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(s)))
 }
 
-function factoryLatLng(c: FactoryCandidate): LatLng | null {
-  const f = c.factory
-  return f && f.lat != null && f.lng != null ? { lat: f.lat, lng: f.lng } : null
+// Approximate city-centre coordinates + nearest hubs, used ONLY to order and
+// estimate distances when a factory has no exact pin yet. A real pin always
+// wins. Keys are normalised city names (lowercase, letters only).
+const CITY_COORDS: Record<string, LatLng> = {
+  guangzhou: { lat: 23.129, lng: 113.264 }, shenzhen: { lat: 22.543, lng: 114.058 },
+  dongguan: { lat: 23.021, lng: 113.752 }, foshan: { lat: 23.022, lng: 113.121 },
+  zhongshan: { lat: 22.517, lng: 113.393 }, zhuhai: { lat: 22.271, lng: 113.577 },
+  taizhou: { lat: 28.656, lng: 121.42 }, hangzhou: { lat: 30.274, lng: 120.155 },
+  ningbo: { lat: 29.868, lng: 121.544 }, wenzhou: { lat: 27.994, lng: 120.699 },
+  yiwu: { lat: 29.307, lng: 120.075 }, quzhou: { lat: 28.97, lng: 118.859 },
+  jinhua: { lat: 29.079, lng: 119.649 }, shaoxing: { lat: 30.03, lng: 120.58 },
+  changzhou: { lat: 31.811, lng: 119.974 }, yancheng: { lat: 33.348, lng: 120.162 },
+  suzhou: { lat: 31.299, lng: 120.585 }, wuxi: { lat: 31.491, lng: 120.312 },
+  nanjing: { lat: 32.06, lng: 118.796 }, nantong: { lat: 31.98, lng: 120.894 },
+  qidong: { lat: 31.81, lng: 121.657 }, xuzhou: { lat: 34.206, lng: 117.284 },
+  shanghai: { lat: 31.23, lng: 121.474 },
+  jinan: { lat: 36.651, lng: 117.12 }, qingdao: { lat: 36.067, lng: 120.382 },
+  pingdu: { lat: 36.784, lng: 119.959 }, jining: { lat: 35.415, lng: 116.587 },
+  yantai: { lat: 37.464, lng: 121.448 }, weifang: { lat: 36.707, lng: 119.162 },
+  zibo: { lat: 36.814, lng: 118.055 }, linyi: { lat: 35.104, lng: 118.356 },
+  fuan: { lat: 27.09, lng: 119.65 }, ningde: { lat: 26.666, lng: 119.548 },
+  fuzhou: { lat: 26.074, lng: 119.296 }, xiamen: { lat: 24.479, lng: 118.089 },
+  quanzhou: { lat: 24.874, lng: 118.676 },
+}
+const CITY_HUBS: Record<string, { airport?: string; rail?: string }> = {
+  guangzhou: { airport: 'Guangzhou Baiyun Intl (CAN)', rail: 'Guangzhou South (HSR)' },
+  shenzhen: { airport: "Shenzhen Bao'an Intl (SZX)", rail: 'Shenzhen North (HSR)' },
+  dongguan: { airport: 'Shenzhen / Guangzhou (SZX/CAN)', rail: 'Humen (HSR)' },
+  foshan: { airport: 'Guangzhou Baiyun Intl (CAN)', rail: 'Foshan West (HSR)' },
+  taizhou: { airport: 'Taizhou Luqiao (HYN)', rail: 'Taizhou Station (HSR)' },
+  hangzhou: { airport: 'Hangzhou Xiaoshan Intl (HGH)', rail: 'Hangzhou East (HSR)' },
+  ningbo: { airport: 'Ningbo Lishe Intl (NGB)', rail: 'Ningbo Station (HSR)' },
+  wenzhou: { airport: 'Wenzhou Longwan Intl (WNZ)', rail: 'Wenzhou South (HSR)' },
+  yiwu: { airport: 'Yiwu Airport (YIW)', rail: 'Yiwu Station (HSR)' },
+  quzhou: { airport: 'Quzhou Airport (JUZ)', rail: 'Quzhou Station (HSR)' },
+  changzhou: { airport: 'Changzhou Benniu Intl (CZX)', rail: 'Changzhou North (HSR)' },
+  yancheng: { airport: 'Yancheng Nanyang Intl (YNZ)', rail: 'Yancheng Station (HSR)' },
+  suzhou: { airport: 'Shanghai (SHA/PVG)', rail: 'Suzhou North (HSR)' },
+  wuxi: { airport: 'Sunan Shuofang Intl (WUX)', rail: 'Wuxi East (HSR)' },
+  nanjing: { airport: 'Nanjing Lukou Intl (NKG)', rail: 'Nanjing South (HSR)' },
+  nantong: { airport: 'Nantong Xingdong (NTG)', rail: 'Nantong West (HSR)' },
+  qidong: { airport: 'Nantong Xingdong (NTG)', rail: 'Qidong Station (HSR)' },
+  shanghai: { airport: 'Shanghai Pudong / Hongqiao (PVG/SHA)', rail: 'Shanghai Hongqiao (HSR)' },
+  jinan: { airport: 'Jinan Yaoqiang Intl (TNA)', rail: 'Jinan West (HSR)' },
+  qingdao: { airport: 'Qingdao Jiaodong Intl (TAO)', rail: 'Qingdao North (HSR)' },
+  pingdu: { airport: 'Qingdao Jiaodong Intl (TAO)', rail: 'Pingdu / Qingdao North (HSR)' },
+  jining: { airport: "Jining Da'an (JNG)", rail: 'Qufu East (HSR)' },
+  yantai: { airport: 'Yantai Penglai Intl (YNT)', rail: 'Yantai South (HSR)' },
+  weifang: { airport: 'Weifang Nanyuan (WEF)', rail: 'Weifang Station (HSR)' },
+  fuan: { airport: 'Fuzhou Changle Intl (FOC)', rail: "Fu'an Station (HSR)" },
+  ningde: { airport: 'Fuzhou Changle Intl (FOC)', rail: 'Ningde Station (HSR)' },
+  fuzhou: { airport: 'Fuzhou Changle Intl (FOC)', rail: 'Fuzhou South (HSR)' },
+  xiamen: { airport: 'Xiamen Gaoqi Intl (XMN)', rail: 'Xiamen North (HSR)' },
+  quanzhou: { airport: 'Quanzhou Jinjiang Intl (JJN)', rail: 'Quanzhou Station (HSR)' },
+}
+const normCity = (s: string): string => (s || '').toLowerCase().replace(/[^a-z]/g, '')
+
+/** True when the factory has an exact pin (not a city-level estimate). */
+function isExactPin(c: FactoryCandidate): boolean {
+  return Boolean(c.factory && c.factory.lat != null && c.factory.lng != null)
 }
 
-/** Order candidates nearest-first from the origin (only those with coordinates). */
+function factoryLatLng(c: FactoryCandidate): LatLng | null {
+  if (c.factory && c.factory.lat != null && c.factory.lng != null) return { lat: c.factory.lat, lng: c.factory.lng }
+  return CITY_COORDS[normCity(cityOf(c))] || null // fall back to the city centre
+}
+
+/** Nearest airport & rail station for a stop: the factory's own, else the city's. */
+function hubsFor(c: FactoryCandidate): { airport: string; rail: string } {
+  const f = c.factory
+  const city = CITY_HUBS[normCity(cityOf(c))] || {}
+  return {
+    airport: (f?.nearest_airport || '').trim() || city.airport || '',
+    rail: (f?.nearest_rail || '').trim() || city.rail || '',
+  }
+}
+
+/** Total round-trip length: origin → each stop in order → back to origin. */
+function tourLength(origin: LatLng, seq: FactoryCandidate[]): number {
+  let d = 0
+  let prev = origin
+  for (const c of seq) {
+    const p = factoryLatLng(c)!
+    d += haversineKm(prev, p)
+    prev = p
+  }
+  return d + haversineKm(prev, origin)
+}
+
+/** 2-opt pass to uncross a greedy tour (small n, so this is cheap). */
+function twoOpt(origin: LatLng, seq: FactoryCandidate[]): FactoryCandidate[] {
+  let best = seq.slice()
+  let bestLen = tourLength(origin, best)
+  let improved = true
+  let guard = 0
+  while (improved && guard++ < 40) {
+    improved = false
+    for (let i = 0; i < best.length - 1; i++) {
+      for (let k = i + 1; k < best.length; k++) {
+        const cand = best.slice(0, i).concat(best.slice(i, k + 1).reverse(), best.slice(k + 1))
+        const len = tourLength(origin, cand)
+        if (len + 1e-6 < bestLen) {
+          best = cand
+          bestLen = len
+          improved = true
+        }
+      }
+    }
+  }
+  return best
+}
+
+/**
+ * Order candidates into a sensible visiting sequence from the origin: a greedy
+ * nearest-first pass improved by 2-opt (removes backtracking). Uses each
+ * factory's exact pin, else its city centre; factories with no known location
+ * are returned separately.
+ */
 export function orderByNearest(origin: LatLng, cands: FactoryCandidate[]): {
   ordered: FactoryCandidate[]
   unlocated: FactoryCandidate[]
@@ -189,7 +301,7 @@ export function orderByNearest(origin: LatLng, cands: FactoryCandidate[]): {
     ordered.push(next)
     cur = factoryLatLng(next)!
   }
-  return { ordered, unlocated }
+  return { ordered: twoOpt(origin, ordered), unlocated }
 }
 
 function kmLabel(km: number): string {
@@ -209,6 +321,7 @@ const airHours = (km: number) => km / 650 + 2.3
 const trainHours = (km: number) => (km * TRAIN_FACTOR) / 230 + 0.8
 /** Both options for one leg: air distance/time AND train distance/time. */
 function legLine(km: number): string {
+  if (km < 5) return 'same city / short local transfer'
   return `~${kmLabel(km)} by air (${hoursLabel(airHours(km))}) · ~${kmLabel(km * TRAIN_FACTOR)} by train (${hoursLabel(trainHours(km))})`
 }
 
@@ -230,6 +343,7 @@ export function tripSummary(originName: string, origin: LatLng, cands: FactoryCa
   let prev = origin
   let total = 0
   let totalH = 0
+  let anyEstimated = false
   ordered.forEach((c, i) => {
     const p = factoryLatLng(c)!
     const km = haversineKm(prev, p)
@@ -237,13 +351,15 @@ export function tripSummary(originName: string, origin: LatLng, cands: FactoryCa
     totalH += fastestH(km)
     const letter = String.fromCharCode(66 + i) // B, C, D…
     const from = i === 0 ? 'Canton Fair' : ordered[i - 1].supplier.company_name
-    const f = c.factory
+    const hubs = hubsFor(c)
+    const estimated = !isExactPin(c)
+    if (estimated) anyEstimated = true
     sections.push(
       [
-        `${letter}. ${c.supplier.company_name} — ${cityOf(c)}`,
+        `${letter}. ${c.supplier.company_name} — ${cityOf(c)}${estimated ? ' *' : ''}`,
         `    Leg from ${from}: ${legLine(km)}`,
-        `    ✈ Nearest airport: ${f?.nearest_airport?.trim() || 'not set (add in Edit)'}`,
-        `    🚄 Nearest train station: ${f?.nearest_rail?.trim() || 'not set (add in Edit)'}`,
+        `    ✈ Nearest airport: ${hubs.airport || 'not set (add in Edit)'}`,
+        `    🚄 Nearest train station: ${hubs.rail || 'not set (add in Edit)'}`,
       ].join('\n'),
     )
     prev = p
@@ -262,8 +378,10 @@ export function tripSummary(originName: string, origin: LatLng, cands: FactoryCa
     sections.join('\n\n')
   out += `\n\nRound-trip ≈ ${kmLabel(total)} by air (straight-line) / ${kmLabel(total * TRAIN_FACTOR)} by train · ${hoursLabel(totalH)} travelling (excludes time spent at each factory).`
   out += `\nAir distance is straight-line and train distance/time are approximate — confirm exact flights/trains at the airports & stations named above.`
+  if (anyEstimated)
+    out += `\n* Location taken from the city centre (no exact factory pin yet) — open the factory and paste its coordinates for a precise distance.`
   if (unlocated.length)
-    out += `\n\nNot yet pinned (add coordinates to include in the route): ${unlocated.map((c) => c.supplier.company_name).join(', ')}.`
+    out += `\n\nNo city recognised yet (set a city or coordinates to include in the route): ${unlocated.map((c) => c.supplier.company_name).join(', ')}.`
   return out
 }
 
