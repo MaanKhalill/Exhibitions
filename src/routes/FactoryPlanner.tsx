@@ -6,6 +6,7 @@ import { useExhibitions } from '../lib/ExhibitionContext'
 import { draftFactory } from '../lib/defaults'
 import { dayLabel } from '../lib/planner'
 import {
+  amapCandUrl,
   bestTransport,
   candidateRisks,
   cityOf,
@@ -276,9 +277,10 @@ function CandidateRow({
         <input type="checkbox" checked={onMap} onChange={onToggleMap} />
         <span>Include on the combined map</span>
       </label>
-      <div className="actions" style={{ marginTop: 8 }}>
-        <div style={{ flex: 1 }}>{dayMover(cand)}</div>
-        <a className="btn" href={mapsSearchUrl(cand)} target="_blank" rel="noreferrer">🗺 Map</a>
+      <div className="actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 120 }}>{dayMover(cand)}</div>
+        <a className="btn" href={mapsSearchUrl(cand)} target="_blank" rel="noreferrer">🗺 Google</a>
+        <a className="btn" href={amapCandUrl(cand)} target="_blank" rel="noreferrer">📍 Amap</a>
         <button className="btn primary" onClick={onEdit}>Edit</button>
       </div>
     </div>
@@ -423,6 +425,11 @@ function FactoryEditor({
           loading="lazy"
           style={{ width: '100%', height: 180, border: 0, borderRadius: 12, marginBottom: 12 }}
         />
+
+        <div className="actions" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
+          <a className="btn" href={mapsSearchUrl({ ...cand, factory: f })} target="_blank" rel="noreferrer">🗺 Google Maps</a>
+          <a className="btn" href={amapCandUrl({ ...cand, factory: f })} target="_blank" rel="noreferrer">📍 Amap 高德</a>
+        </div>
 
         <div className="field">
           <label>Exact location <span style={{ color: 'var(--muted)', fontWeight: 400 }}>— paste coordinates or a Google Maps link</span></label>

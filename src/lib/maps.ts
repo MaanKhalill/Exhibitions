@@ -77,9 +77,18 @@ export function amapForSupplier(s: {
       const [lng, lat] = Math.abs(a) >= Math.abs(b) ? [a, b] : [b, a]
       return `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(s.company_name || 'Location')}&coordinate=gaode&callnative=1&src=exhibitions`
     }
-    return amapSearchUrl(raw)
+    // Plain text: search the complete address (add city/province/country if the
+    // supplier's text doesn't already include them).
+    return amapSearchUrl(...completeAddress(raw, s.city, s.province, s.country))
   }
   return amapSearchUrl(s.address, s.city, s.province, s.country)
+}
+
+/** Keep `raw`, then append any address parts it doesn't already contain. */
+function completeAddress(raw: string, ...parts: (string | null | undefined)[]): string[] {
+  const have = raw.toLowerCase()
+  const extra = parts.map((p) => (p || '').trim()).filter((p) => p && !have.includes(p.toLowerCase()))
+  return [raw, ...extra]
 }
 
 /** Best-effort copy to clipboard (never throws). */

@@ -1,5 +1,6 @@
 import type { Exhibition, Factory, FactoryCandidate } from '../types'
 import { ymd } from './planner'
+import { amapMarkerUrl, amapSearchUrl } from './maps'
 
 // Pearl River Delta / safe-return cities near Guangzhou for departure safety.
 const PRD = new Set([
@@ -101,6 +102,20 @@ export function mapsSearchUrl(cand: FactoryCandidate): string {
   if (f?.lat != null && f?.lng != null) return `https://www.google.com/maps/search/?api=1&query=${f.lat},${f.lng}`
   const q = encodeURIComponent(f?.address || `${cityOf(cand)} ${cand.supplier.company_name}`)
   return `https://www.google.com/maps/search/?api=1&query=${q}`
+}
+
+/** "Open in Amap (高德)" URL for a factory: a marker at its exact pin (WGS-84),
+ *  else an Amap search over the complete factory address. */
+export function amapCandUrl(c: FactoryCandidate): string {
+  const f = c.factory
+  if (f?.lat != null && f?.lng != null) return amapMarkerUrl(f.lat, f.lng, c.supplier.company_name)
+  const city = f?.city || c.supplier.city
+  const prov = f?.province || c.supplier.province
+  return (
+    amapSearchUrl(f?.address || c.supplier.address, f?.district, city, prov, 'China') ||
+    amapSearchUrl(c.supplier.company_name, city, 'China') ||
+    'https://uri.amap.com/'
+  )
 }
 
 /** Keyless embeddable Google Maps URL (works in an <iframe> without an API key). */
