@@ -27,6 +27,7 @@ export function AddToFair() {
   const [province, setProvince] = useState('')
   const [city, setCity] = useState('')
   const [address, setAddress] = useState('')
+  const [amap, setAmap] = useState('')
 
   // Contact person (their business card) — saved as a contact on the supplier.
   const [contactName, setContactName] = useState('')
@@ -103,6 +104,7 @@ export function AddToFair() {
             province,
             city,
             address,
+            amap,
             product_summary: products,
             first_met_exhibition_id: current.id,
           }),
@@ -205,6 +207,9 @@ export function AddToFair() {
           </Field>
           <Field label="Detailed address" hint="Street, building, unit, district…">
             <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, building, unit…" />
+          </Field>
+          <Field label="Amap location (高德)" hint="Amap share link, coordinates, or Chinese address.">
+            <textarea value={amap} onChange={(e) => setAmap(e.target.value)} placeholder="Paste Amap share link / 高德地址 / coordinates" />
           </Field>
         </>
       )}

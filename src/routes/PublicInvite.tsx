@@ -139,6 +139,15 @@ export function PublicInvite() {
           <div className="field"><BiLabel en="Company name" zh="公司名称" /><input value={f.company_name || ''} onChange={(e) => set('company_name', e.target.value)} required /></div>
           <div className="field"><BiLabel en="Products you manufacture / supply" zh="主营产品" /><textarea value={f.product_summary || ''} onChange={(e) => set('product_summary', e.target.value)} placeholder="Free text / 自由填写" /></div>
           <div className="field"><BiLabel en="Website" zh="网站" /><input value={f.website || ''} onChange={(e) => set('website', e.target.value)} /></div>
+          <div className="field"><BiLabel en="Company address" zh="公司地址" /><textarea value={f.address || ''} onChange={(e) => set('address', e.target.value)} /></div>
+          <div className="field">
+            <BiLabel en="Amap location (share link or address)" zh="高德地图位置（分享链接或地址）" />
+            <textarea
+              value={f.amap || ''}
+              onChange={(e) => set('amap', e.target.value)}
+              placeholder="In Amap: share location → copy link / 在高德地图「分享位置」并复制链接"
+            />
+          </div>
         </div>
 
         <div className="detail-section">

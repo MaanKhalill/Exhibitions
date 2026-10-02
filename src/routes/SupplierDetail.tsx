@@ -6,13 +6,15 @@ import { listContactsForSupplier } from '../api/contacts'
 import { listParticipationsForSupplier } from '../api/participations'
 import { useExhibitions } from '../lib/ExhibitionContext'
 import { PRIORITY_LABELS, VISIT_STATUS_LABELS, type Contact } from '../types'
-import { mailUrl, mapSearchUrl, siteUrl, telUrl, whatsappUrl } from '../lib/maps'
+import { amapForSupplier, mailUrl, mapSearchUrl, siteUrl, telUrl, whatsappUrl } from '../lib/maps'
 import { getNavOrder } from '../lib/navOrder'
 import { useSwipe } from '../lib/useSwipe'
 import { Page, Spinner } from '../components/ui'
 import { NavArrows } from '../components/NavArrows'
 import { SupplierUpdateRequest } from '../components/SupplierUpdateRequest'
 import { WeChatLink } from '../components/WeChatLink'
+
+const isHttp = (s: string) => /^https?:\/\//i.test(s)
 
 /** A labelled row whose value is a WeChat ID that opens the WeChat app. */
 function WeChatRow({ id }: { id: string }) {
@@ -102,6 +104,7 @@ export function SupplierDetail() {
   const mail = mailUrl(s.email)
   const site = siteUrl(s.website)
   const map = mapSearchUrl(s.address, s.city, s.province, s.country)
+  const amap = amapForSupplier(s)
 
   // The contacts list holds the current details of each person — most recently
   // updated first, so the top one is the latest primary contact.
@@ -141,18 +144,18 @@ export function SupplierDetail() {
         <Row k="Also known as" v={s.aliases} />
       </div>
 
-      {(s.address || s.city || s.province || s.country) && (
+      {(s.address || s.city || s.province || s.country || s.amap) && (
         <div className="detail-section">
           <h3>Address</h3>
           <Row k="Street / building" v={s.address} />
           <Row k="City" v={s.city} />
           <Row k="Province / State" v={s.province} />
           <Row k="Country" v={s.country} />
-          {map && (
-            <div className="actions" style={{ marginTop: 10 }}>
-              <a className="btn" href={map} target="_blank" rel="noreferrer">📍 Open in Google Maps</a>
-            </div>
-          )}
+          {s.amap && <Row k="Amap 高德" v={s.amap} href={isHttp(s.amap) ? s.amap : undefined} external />}
+          <div className="actions" style={{ marginTop: 10, flexWrap: 'wrap' }}>
+            {map && <a className="btn" href={map} target="_blank" rel="noreferrer">🗺 Google Maps</a>}
+            {amap && <a className="btn" href={amap} target="_blank" rel="noreferrer">📍 Amap 高德</a>}
+          </div>
         </div>
       )}
 

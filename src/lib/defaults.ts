@@ -107,6 +107,7 @@ export function draftSupplier(partial: Partial<Supplier> = {}): Supplier {
     province: '',
     city: '',
     address: '',
+    amap: '',
     phone: '',
     wechat: '',
     email: '',

@@ -38,6 +38,50 @@ export function siteUrl(website: string | null | undefined): string | undefined 
  *  specific contact, so we open the app and copy the ID for pasting into search). */
 export const WECHAT_APP_URL = 'weixin://'
 
+const isUrl = (s: string) => /^https?:\/\//i.test(s.trim())
+
+/** Amap (Gaode / 高德) search-by-address link. Opens the Amap app in China. */
+export function amapSearchUrl(...parts: (string | null | undefined)[]): string | undefined {
+  const q = parts.map((p) => (p || '').trim()).filter(Boolean).join(' ')
+  if (!q) return undefined
+  return `https://uri.amap.com/search?keyword=${encodeURIComponent(q)}&src=exhibitions&callnative=1`
+}
+
+/** Amap marker at WGS-84 coordinates (Amap converts to its GCJ-02 datum). */
+export function amapMarkerUrl(lat: number, lng: number, name = 'Location'): string {
+  return `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(name)}&coordinate=wgs84&callnative=1&src=exhibitions`
+}
+
+/**
+ * Best "open in Amap" link for a supplier. Prefers the supplier-provided Amap
+ * field: a share link opens as-is; a coordinate pair becomes an Amap marker
+ * (treated as Amap's native lng,lat / GCJ-02, the usual copy format); any other
+ * text is searched. Falls back to searching the structured address.
+ */
+export function amapForSupplier(s: {
+  amap?: string | null
+  address?: string | null
+  city?: string | null
+  province?: string | null
+  country?: string | null
+  company_name?: string | null
+}): string | undefined {
+  const raw = (s.amap || '').trim()
+  if (raw) {
+    if (isUrl(raw)) return raw
+    const m = raw.match(/(-?\d{1,3}\.\d+)\s*[, ]\s*(-?\d{1,3}\.\d+)/)
+    if (m) {
+      const a = parseFloat(m[1])
+      const b = parseFloat(m[2])
+      // China: longitude (~73–135) > latitude (~18–53); order them, assume Amap GCJ-02.
+      const [lng, lat] = Math.abs(a) >= Math.abs(b) ? [a, b] : [b, a]
+      return `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(s.company_name || 'Location')}&coordinate=gaode&callnative=1&src=exhibitions`
+    }
+    return amapSearchUrl(raw)
+  }
+  return amapSearchUrl(s.address, s.city, s.province, s.country)
+}
+
 /** Best-effort copy to clipboard (never throws). */
 export function copyText(text: string): void {
   try {

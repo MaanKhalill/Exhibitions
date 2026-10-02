@@ -52,6 +52,7 @@ export interface Supplier {
   province: string
   city: string
   address: string
+  amap: string
   phone: string
   wechat: string
   email: string

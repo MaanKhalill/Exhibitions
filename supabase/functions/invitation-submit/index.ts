@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
         city: nz(p.city || '', cur?.city),
         country: nz(p.country || '', cur?.country),
         address: nz(p.address || '', cur?.address),
+        amap: nz(p.amap || '', cur?.amap),
       }
       await admin.from('ex_suppliers').update(next).eq('id', supplierId)
     } else {
@@ -104,7 +105,7 @@ Deno.serve(async (req) => {
         website, domain, phone,
         wechat: p.wechat || '',
         email: p.email || inv.email || '',
-        city: p.city || '', country: p.country || '', address: p.address || '',
+        city: p.city || '', country: p.country || '', address: p.address || '', amap: p.amap || '',
         first_met_exhibition_id: inv.exhibition_id,
       }).select('id').single()
       if (cErr) return json({ error: cErr.message }, 500)

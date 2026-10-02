@@ -119,6 +119,9 @@ function Inner({ initial, isEdit }: { initial: Supplier; isEdit: boolean }) {
         <Field label="Detailed address" hint="Street, building, unit, district…">
           <input value={s.address} onChange={(e) => set('address', e.target.value)} placeholder="e.g. Rm 1806, GT Land Plaza, Zhujiang New Town" />
         </Field>
+        <Field label="Amap location (高德)" hint="Amap share link, coordinates, or Chinese address — powers the ‘Open in Amap’ button in China.">
+          <textarea value={s.amap} onChange={(e) => set('amap', e.target.value)} placeholder="Paste Amap share link / 高德地址 / coordinates" />
+        </Field>
         <Field label="Also known as" hint="Alternative names / spellings, for search & de-duplication.">
           <input value={s.aliases} onChange={(e) => set('aliases', e.target.value)} />
         </Field>

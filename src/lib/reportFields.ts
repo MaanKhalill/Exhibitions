@@ -97,6 +97,7 @@ export const FIELDS: FieldDef[] = [
   supF('province', 'Province / State', (s) => s.province),
   supF('country', 'Country', (s) => s.country),
   supF('address', 'Detailed address', (s) => s.address),
+  supF('amap', 'Amap location (高德)', (s) => s.amap),
   supF('notes', 'Supplier notes', (s) => s.notes),
   supF('created_at', 'Added on', (s) => dOnly(s.created_at), (s) => s.created_at || ''),
 
