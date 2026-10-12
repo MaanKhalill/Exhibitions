@@ -114,18 +114,26 @@ export function FairSuppliers() {
 
       {rows.length > 0 && (
         <ExportMenu
-          build={() =>
-            fairSuppliersReport(rows, {
-              title: `Fair suppliers — ${current.name}${current.edition ? ' · ' + current.edition : ''}`,
-              subtitle: [
-                filter !== 'all' ? FILTERS.find((f) => f.key === filter)?.label : null,
-                term.trim() ? `Search: “${term.trim()}”` : null,
-                `Sorted by ${sort === 'name' ? 'company name' : 'hall & booth'}`,
-              ]
-                .filter(Boolean)
-                .join(' · '),
-              filename: `fair-suppliers-${current.name}`,
-            })
+          styles={[
+            { key: 'table', label: 'Table + person in charge' },
+            { key: 'cards', label: 'Detailed (paragraph)' },
+          ]}
+          build={(style) =>
+            fairSuppliersReport(
+              rows,
+              {
+                title: `Fair suppliers — ${current.name}${current.edition ? ' · ' + current.edition : ''}`,
+                subtitle: [
+                  filter !== 'all' ? FILTERS.find((f) => f.key === filter)?.label : null,
+                  term.trim() ? `Search: “${term.trim()}”` : null,
+                  `Sorted by ${sort === 'name' ? 'company name' : 'hall & booth'}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · '),
+                filename: `fair-suppliers-${current.name}`,
+              },
+              style,
+            )
           }
         />
       )}

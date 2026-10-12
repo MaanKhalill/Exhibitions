@@ -39,7 +39,11 @@ export function Search() {
         <>
           <p className="hint">{data.length} supplier{data.length === 1 ? '' : 's'} found</p>
           <ExportMenu
-            build={() =>
+            styles={[
+              { key: 'table', label: 'Table (essential)' },
+              { key: 'cards', label: 'Detailed (all fields)' },
+            ]}
+            build={(style) =>
               suppliersReport(
                 data.map((r) => r.supplier),
                 {
@@ -47,6 +51,7 @@ export function Search() {
                   subtitle: `Search: “${term.trim()}”`,
                   filename: `search-${term.trim()}`,
                 },
+                style,
               )
             }
           />

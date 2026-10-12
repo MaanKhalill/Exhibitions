@@ -61,12 +61,20 @@ export function SuppliersList() {
 
       {rows.length > 0 && (
         <ExportMenu
-          build={() =>
-            suppliersReport(rows, {
-              title: 'Supplier directory',
-              subtitle: term.trim() ? `Search: “${term.trim()}”` : 'All suppliers, across every exhibition',
-              filename: `suppliers${term.trim() ? '-search' : ''}`,
-            })
+          styles={[
+            { key: 'table', label: 'Table (essential)' },
+            { key: 'cards', label: 'Detailed (all fields)' },
+          ]}
+          build={(style) =>
+            suppliersReport(
+              rows,
+              {
+                title: 'Supplier directory',
+                subtitle: term.trim() ? `Search: “${term.trim()}”` : 'All suppliers, across every exhibition',
+                filename: `suppliers${term.trim() ? '-search' : ''}`,
+              },
+              style,
+            )
           }
         />
       )}
